@@ -20,7 +20,44 @@ If the Figma URL lacks a node id and the target is ambiguous, ask for the node-s
 
 When `GeneralOB/OBFigma.md` exists, read it automatically before asking for page input. Treat each `## <id>` section as one page task with optional title text, one or more Figma URLs, optional `### announcement` constraints, and `ob-status` marker.
 
-## 1A. OBFigma Queue Mode
+## 1A. GeneralOB Structure Preflight
+
+Before reading Figma, changing `OBFigma.md`, or editing Swift, verify that the engineering project root contains a complete `GeneralOB` folder.
+
+Required paths, relative to the project root:
+
+- `GeneralOB/GeneralOBCollectionVC.swift`
+- `GeneralOB/GeneralOBPage.swift`
+- `GeneralOB/GeneralOBPage+Data.swift`
+- `GeneralOB/GeneralOBPage+VC.swift`
+- `GeneralOB/GeneralOBVC.swift`
+- `GeneralOB/DataModel`
+- `GeneralOB/Pages`
+
+Use the filesystem and fast searches to confirm the structure, for example:
+
+- `test -d GeneralOB`
+- `test -f GeneralOB/GeneralOBCollectionVC.swift`
+- `test -f GeneralOB/GeneralOBPage.swift`
+- `test -f GeneralOB/GeneralOBPage+Data.swift`
+- `test -f GeneralOB/GeneralOBPage+VC.swift`
+- `test -f GeneralOB/GeneralOBVC.swift`
+- `test -d GeneralOB/DataModel`
+- `test -d GeneralOB/Pages`
+- `rg --files GeneralOB | rg 'GeneralOB(CollectionVC|Page|VC)\.swift|GeneralOBPage\+Data\.swift|GeneralOBPage\+VC\.swift'`
+
+The skill package includes a fallback scaffold at `assets/GeneralOB`. This bundled folder is copied from the current GeneralOB project and must remain part of the skill package so other projects can bootstrap the required onboarding architecture.
+
+If `GeneralOB` is missing or any required file/folder is absent:
+
+- copy the skill-bundled `assets/GeneralOB` folder into the engineering project root as `GeneralOB`
+- do not create placeholder or stub versions of the missing files just to pass the check
+- re-run the same required-path verification after the copy
+- stop and report the missing bundled scaffold if `assets/GeneralOB` is unavailable or incomplete
+
+Only continue to `OBFigma.md` queue parsing or Figma implementation after this preflight passes.
+
+## 1B. OBFigma Queue Mode
 
 Use `GeneralOB/OBFigma.md` as a resumable queue:
 
@@ -62,6 +99,7 @@ When the Figma data and screenshot conflict, trust the screenshot for visual com
 
 Before editing, inspect the local codebase:
 
+- complete the `GeneralOB` structure preflight first and record whether the folder was already present or copied from the skill-bundled `assets/GeneralOB` scaffold
 - `sed -n '1,240p' GeneralOB/OBFigma.md` to read the page queue when present
 - `rg --files -g '*.swift'` to list Swift files
 - `rg "class .*ViewController|struct .*View|OBBaseViewController|UIViewController|ViewModel|Page" -n` for architecture
@@ -283,6 +321,7 @@ Use assets deliberately:
 
 Run the strongest reasonable checks:
 
+- confirm the `GeneralOB` structure preflight passed before Figma reading and implementation, and that any folder copied from `assets/GeneralOB` was verified after copying
 - inspect `git diff` for accidental unrelated churn
 - if running from `OBFigma.md`, confirm only the current page block's status marker changed and it reflects `in_progress`, `failed`, or `done` accurately
 - if the current `OBFigma.md` block contains multiple Figma links, confirm all links were treated as UI states of the same page and no extra page enum/file/commit was created for a state link
@@ -338,6 +377,7 @@ When processing pages from `OBFigma.md`:
 
 Keep the final response concise and include:
 
+- `GeneralOB` structure preflight result, including whether the required folder already existed or was copied from the skill-bundled `assets/GeneralOB` scaffold before implementation
 - `OBFigma.md` page id, page title, status transition, attempt count, and commit hash when queue mode is used
 - every Figma URL in the processed `OBFigma.md` block and the UI state each one represents
 - any `### announcement` conditions in the processed block and how the implementation satisfies each condition

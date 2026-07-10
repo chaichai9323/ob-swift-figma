@@ -150,6 +150,16 @@
     "reason": "Project-specific selected cell UI correction through isSelected.didSet in the custom cell subclass."
   },
   {
+    "input": "ob-swift-figma 在开始执行任务前，先查找一下工程目录里边有没有GeneralOB文件夹，确保文件夹下有以下文件GeneralOBCollectionVC.swift GeneralOBPage.swift GeneralOBPage+Data.swift GeneralOBPage+VC.swift GeneralOBVC.swift DataModel和Pages文件夹,没有的话需要把GeneralOB文件夹复制一份放在工程里边",
+    "should_trigger": true,
+    "reason": "Project-specific GeneralOB folder preflight and required architecture file check before Figma implementation."
+  },
+  {
+    "input": "ob-swift-figma 需要把目前项目中的GeneralOB文件夹复制一份放在当前skill中，以确保其他项目使用当前skill的时候找不到GeneralOB文件资源",
+    "should_trigger": true,
+    "reason": "Project-specific skill packaging request to bundle the reusable GeneralOB scaffold for other projects."
+  },
+  {
     "input": "教我 SwiftUI 的基础语法。",
     "should_trigger": false,
     "reason": "Generic tutorial, no Figma or existing project implementation."
