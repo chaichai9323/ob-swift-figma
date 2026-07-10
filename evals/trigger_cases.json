@@ -165,6 +165,11 @@
     "reason": "Project-specific list-page selection initialization rule: restore only from GeneralOBData and call vc.makeSelectIndexes([]) when empty unless explicitly specified."
   },
   {
+    "input": "ob-swift-figma 复制OB-Task-Doc到当前skill，任务开始前以保证工程根目录有这个文件夹，这个文件夹不要放进project",
+    "should_trigger": true,
+    "reason": "Project-specific skill packaging request to bundle OB-Task-Doc and ensure the root task-doc folder exists without adding it to the Xcode project."
+  },
+  {
     "input": "教我 SwiftUI 的基础语法。",
     "should_trigger": false,
     "reason": "Generic tutorial, no Figma or existing project implementation."

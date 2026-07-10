@@ -6,7 +6,7 @@ Use this checklist when turning Figma into Swift code inside an existing iOS pro
 
 Confirm the concrete design target:
 
-- `GeneralOB/OBFigma.md` page queue, when present
+- `OB-Task-Doc/OBFigma.md` page queue, when present; legacy `GeneralOB/OBFigma.md` is a fallback only
 - Figma URL or node id; in `OBFigma.md`, one page block may contain multiple Figma URLs
 - `### announcement` content inside the selected `OBFigma.md` page block, when present
 - target screen, flow, or component
@@ -18,9 +18,25 @@ Confirm the concrete design target:
 
 If the Figma URL lacks a node id and the target is ambiguous, ask for the node-specific URL before implementing.
 
-When `GeneralOB/OBFigma.md` exists, read it automatically before asking for page input. Treat each `## <id>` section as one page task with optional title text, one or more Figma URLs, optional `### announcement` constraints, and `ob-status` marker.
+When `OB-Task-Doc/OBFigma.md` exists, read it automatically before asking for page input. If it is absent, fall back to legacy `GeneralOB/OBFigma.md`. Treat each `## <id>` section as one page task with optional title text, one or more Figma URLs, optional `### announcement` constraints, and `ob-status` marker.
 
-## 1A. GeneralOB Structure Preflight
+## 1A. OB-Task-Doc Preflight
+
+Before reading Figma, changing `OBFigma.md`, or editing Swift, verify that the engineering project root contains an `OB-Task-Doc` folder.
+
+The skill package includes a fallback task-doc scaffold at `assets/OB-Task-Doc`. This bundled folder is copied from the current project and must remain part of the skill package so other projects can bootstrap the task document folder.
+
+If `OB-Task-Doc` is missing:
+
+- copy the skill-bundled `assets/OB-Task-Doc` folder into the engineering project root as `OB-Task-Doc`
+- keep `OB-Task-Doc` as a root-level task documentation folder only
+- do not add `OB-Task-Doc` to the Xcode project file, project navigator groups, app targets, build phases, or Copy Bundle Resources
+- do not edit `.xcodeproj/project.pbxproj` merely to make `OB-Task-Doc` visible in Xcode
+- stop and report the missing bundled scaffold if `assets/OB-Task-Doc` is unavailable or incomplete
+
+Only continue to queue parsing or Figma implementation after this preflight passes.
+
+## 1B. GeneralOB Structure Preflight
 
 Before reading Figma, changing `OBFigma.md`, or editing Swift, verify that the engineering project root contains a complete `GeneralOB` folder.
 
@@ -57,9 +73,9 @@ If `GeneralOB` is missing or any required file/folder is absent:
 
 Only continue to `OBFigma.md` queue parsing or Figma implementation after this preflight passes.
 
-## 1B. OBFigma Queue Mode
+## 1C. OBFigma Queue Mode
 
-Use `GeneralOB/OBFigma.md` as a resumable queue:
+Use `OB-Task-Doc/OBFigma.md` as the primary resumable queue, with legacy `GeneralOB/OBFigma.md` as a fallback when the task-doc queue file is absent:
 
 - parse page blocks in document order from headings such as `## 001`, `## 002`, and so on
 - collect every Figma URL inside the same page block
@@ -99,8 +115,10 @@ When the Figma data and screenshot conflict, trust the screenshot for visual com
 
 Before editing, inspect the local codebase:
 
+- complete the `OB-Task-Doc` preflight first and record whether the folder was already present or copied from the skill-bundled `assets/OB-Task-Doc` scaffold
 - complete the `GeneralOB` structure preflight first and record whether the folder was already present or copied from the skill-bundled `assets/GeneralOB` scaffold
-- `sed -n '1,240p' GeneralOB/OBFigma.md` to read the page queue when present
+- `sed -n '1,240p' OB-Task-Doc/OBFigma.md` to read the primary page queue when present
+- `sed -n '1,240p' GeneralOB/OBFigma.md` only as a legacy fallback when `OB-Task-Doc/OBFigma.md` is absent
 - `rg --files -g '*.swift'` to list Swift files
 - `rg "class .*ViewController|struct .*View|OBBaseViewController|UIViewController|ViewModel|Page" -n` for architecture
 - `rg "SnapKit|snp\\.makeConstraints|NSLayoutConstraint|SwiftUI|View\\s*\\{" -n` for layout style
@@ -322,6 +340,7 @@ Use assets deliberately:
 
 Run the strongest reasonable checks:
 
+- confirm the `OB-Task-Doc` preflight passed before Figma reading and implementation, and that any folder copied from `assets/OB-Task-Doc` was placed at the project root without adding it to `.xcodeproj`, app targets, build phases, or Copy Bundle Resources
 - confirm the `GeneralOB` structure preflight passed before Figma reading and implementation, and that any folder copied from `assets/GeneralOB` was verified after copying
 - inspect `git diff` for accidental unrelated churn
 - if running from `OBFigma.md`, confirm only the current page block's status marker changed and it reflects `in_progress`, `failed`, or `done` accurately
@@ -379,6 +398,7 @@ When processing pages from `OBFigma.md`:
 
 Keep the final response concise and include:
 
+- `OB-Task-Doc` preflight result, including whether the root folder already existed or was copied from the skill-bundled `assets/OB-Task-Doc` scaffold, and confirmation that it was not added to the Xcode project
 - `GeneralOB` structure preflight result, including whether the required folder already existed or was copied from the skill-bundled `assets/GeneralOB` scaffold before implementation
 - `OBFigma.md` page id, page title, status transition, attempt count, and commit hash when queue mode is used
 - every Figma URL in the processed `OBFigma.md` block and the UI state each one represents
