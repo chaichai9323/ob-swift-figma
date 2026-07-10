@@ -9,6 +9,7 @@ Confirm the concrete design target:
 - `OB-Task-Doc/OBFigma.md` page queue, when present; legacy `GeneralOB/OBFigma.md` is a fallback only
 - Figma URL or node id; in `OBFigma.md`, one page block may contain multiple Figma URLs
 - `### announcement` content inside the selected `OBFigma.md` page block, when present
+- reference images, reference documents, attachments, filenames, or relative paths mentioned by `### announcement`, resolved from `OB-Task-Doc/` first
 - target screen, flow, or component
 - intended device family and orientation
 - Figma page frame height, especially whether it is greater than `844`
@@ -80,9 +81,11 @@ Use `OB-Task-Doc/OBFigma.md` as the primary resumable queue, with legacy `Genera
 - parse page blocks in document order from headings such as `## 001`, `## 002`, and so on
 - collect every Figma URL inside the same page block
 - collect any `### announcement` section inside the same page block; its text applies only to that page block
+- if the announcement mentions reference images, reference documents, attachments, filenames, or relative paths, resolve those files from `OB-Task-Doc/` before checking any other location
 - treat multiple Figma URLs inside one page block as multiple UI display states of the same page, not as separate pages
 - implement all URLs in a block through one `GeneralOBPage` case and one `OB<Page>VC` page implementation, unless the user explicitly changes the queue structure
 - treat announcement lines as hard page-level implementation constraints that must be satisfied before the page can be marked `done`
+- treat any announcement-linked reference file found under `OB-Task-Doc/` as part of the hard page-level constraints
 - when an announcement conflicts with a generic implementation heuristic, follow the announcement for that page unless it breaks non-negotiable GeneralOB project boundaries; report the conflict and chosen implementation
 - example: `不使用UICollectionView` means do not use `UICollectionView`, `GeneralOBCollectionVC`, collection cells, or collection reload/update APIs in that page, even if it looks option-style; use `GeneralOBVC` or another existing non-collection project pattern instead
 - preserve existing page text and Figma links; edit only status marker lines
@@ -137,6 +140,21 @@ Before editing, inspect the local codebase:
 
 Record the local primitives you will reuse before changing files.
 
+## 3A. Announcement Reference Files
+
+When the selected page block's `### announcement` mentions a reference image, reference document, attachment, filename, or relative path:
+
+- search `OB-Task-Doc/` first, before `GeneralOB/`, `Assets.xcassets`, the repository root, or web/Figma resources
+- use exact relative paths from the announcement when provided, such as `OB-Task-Doc/foo.png` or `foo.pdf`
+- if only a filename or human-readable title is provided, use `rg --files OB-Task-Doc` and filename/title matching to locate candidates
+- for images under `OB-Task-Doc`, inspect the referenced image before implementation and use it alongside the Figma screenshot
+- for documents under `OB-Task-Doc`, read the document content before implementation and treat its requirements as announcement constraints for that page
+- if no matching file exists under `OB-Task-Doc`, report that miss explicitly, then search other project locations only as a fallback
+- do not copy announcement reference documents or images from `OB-Task-Doc` into the app bundle unless the page implementation explicitly needs them as runtime assets
+- do not add reference-only files from `OB-Task-Doc` to `.xcodeproj`, app targets, build phases, or Copy Bundle Resources
+
+Record each resolved reference path and how it influenced layout, copy, assets, or interaction decisions.
+
 ## 4. Mapping Rules
 
 Map Figma layers to existing project primitives:
@@ -179,6 +197,7 @@ For every new Figma page:
 - if running from `OBFigma.md`, update only the current page block's status marker before work; do not mark future pages
 - if the current `OBFigma.md` block contains multiple Figma URLs, read and implement them together as UI states of the same page
 - if the current `OBFigma.md` block contains `### announcement`, write down each announced condition and choose implementation details that satisfy it before editing Swift
+- if the current `OBFigma.md` block's announcement references images or documents, resolve them from `OB-Task-Doc/` first and read or inspect them before editing Swift
 - if the Figma page frame height is greater than `844`, plan the page as scrollable content plus a fixed bottom button layer before creating constraints
 - create or update the page implementation under `GeneralOB/Pages`
 - add one `GeneralOBPage` enum case for the page
@@ -346,6 +365,7 @@ Run the strongest reasonable checks:
 - if running from `OBFigma.md`, confirm only the current page block's status marker changed and it reflects `in_progress`, `failed`, or `done` accurately
 - if the current `OBFigma.md` block contains multiple Figma links, confirm all links were treated as UI states of the same page and no extra page enum/file/commit was created for a state link
 - if the current `OBFigma.md` block contains `### announcement`, confirm every announced condition is satisfied and include that proof in the final response before marking the page `done`
+- if an announcement referenced images or documents, confirm `OB-Task-Doc/` was searched first, list the resolved paths, and explain how each reference was used
 - if an announcement says `不使用UICollectionView`, run a targeted check on the page-specific files to confirm no `UICollectionView` or `GeneralOBCollectionVC` usage was introduced
 - confirm all new page implementation files are under `GeneralOB/Pages`
 - confirm new page file names and class names follow `OB<Page>VC`
@@ -403,6 +423,7 @@ Keep the final response concise and include:
 - `OBFigma.md` page id, page title, status transition, attempt count, and commit hash when queue mode is used
 - every Figma URL in the processed `OBFigma.md` block and the UI state each one represents
 - any `### announcement` conditions in the processed block and how the implementation satisfies each condition
+- any announcement reference images or documents, with the resolved `OB-Task-Doc/...` paths searched or used first
 - changed files
 - `GeneralOBPage` case to page implementation mapping
 - `GeneralOBPage` chrome flags changed for back button, progress bar, or bottom continue button

@@ -170,6 +170,11 @@
     "reason": "Project-specific skill packaging request to bundle OB-Task-Doc and ensure the root task-doc folder exists without adding it to the Xcode project."
   },
   {
+    "input": "ob-swift-figma 执行任务的时候announcement里边的有参考图片或者参考文档的时候，优先在OB-Task-Doc文件夹下查找",
+    "should_trigger": true,
+    "reason": "Project-specific announcement reference resolution rule: search OB-Task-Doc first for reference images and documents."
+  },
+  {
     "input": "教我 SwiftUI 的基础语法。",
     "should_trigger": false,
     "reason": "Generic tutorial, no Figma or existing project implementation."
