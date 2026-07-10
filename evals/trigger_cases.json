@@ -160,6 +160,11 @@
     "reason": "Project-specific skill packaging request to bundle the reusable GeneralOB scaffold for other projects."
   },
   {
+    "input": "ob-swift-figma 列表页面没有特殊指定的情况下，在page.vc使用的地方不要给默认选中的选项",
+    "should_trigger": true,
+    "reason": "Project-specific list-page selection initialization rule: no default selected option in page.vc unless explicitly specified."
+  },
+  {
     "input": "教我 SwiftUI 的基础语法。",
     "should_trigger": false,
     "reason": "Generic tutorial, no Figma or existing project implementation."

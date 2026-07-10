@@ -148,7 +148,7 @@ Map Figma layers to existing project primitives:
 - image views: do not set `UIImageView.contentMode` in page code, page-local custom views, or cells
 - Figma image export: use PNG resources with `2x` and `3x` variants, not SVG
 - collection updates: never call `UICollectionView` reload APIs; rely on `GeneralOBCollectionVC` diffable snapshots, `mainPage.pageData.items`, selection methods, and direct state updates
-- initial selection: `makeSelectItems`, `makeSelectIndexes`, and other `makeSelect*` helpers are external page-creation APIs for list pages and must not be called inside the page implementation; for non-list tap-to-select pages, restore and save selection directly through `GeneralOBData` in the page's own state and tap handling code
+- initial selection: `makeSelectItems`, `makeSelectIndexes`, and other `makeSelect*` helpers are external page-creation APIs for list pages and must not be called inside the page implementation; for list pages, use them only to restore saved `GeneralOBData` values or an explicitly specified Figma/announcement initial state, and otherwise pass an empty selection list; for non-list tap-to-select pages, restore and save selection directly through `GeneralOBData` in the page's own state and tap handling code
 - bottom continue button state: use `override var nextBtnEnable: Bool { didSet { ... } }` for custom enabled or disabled appearance; do not create a separate update or refresh method for the bottom button state
 - controls: existing buttons, labels, `GeneralOBCollectionVC` and its collection cell hooks for option pages, progress bars, modals, toasts, and onboarding components
 
@@ -171,7 +171,7 @@ For every new Figma page:
 - update `GeneralOBPage+Data.swift` or the relevant `GeneralOBPage` extension so option-list metadata matches Figma: multi-select pages return `multipleSelected = true`; same-height cell pages return `cellHeightIsConsistent = true`; variable-height cell pages return `cellHeightIsConsistent = false`
 - update `GeneralOBPage+Data.swift` so `pageData` returns that page's title, options, icons, and localized text
 - update `GeneralOBData` for list pages and non-list tap-to-select pages with a matching persisted selected-index property: single-select uses `var page: Int?`; multi-select uses `var page: [Int]?`; replace `page` with the project's page-specific property name
-- for list pages, update the matching `GeneralOBPage` `page.vc` or external VC creation branch to restore and save indexes with `vc.makeSelectIndexes`, using the single-select or multi-select pattern below
+- for list pages, update the matching `GeneralOBPage` `page.vc` or external VC creation branch to restore and save indexes with `vc.makeSelectIndexes`, using the single-select or multi-select pattern below; do not set a default selected item there unless Figma or the page announcement explicitly specifies one
 - for non-list tap-to-select pages, restore from `GeneralOBData` during page setup, render the selected UI from that state, update the state on tap, and save the new value back to `GeneralOBData`
 - for every option item in `pageData`, initialize `GeneralOBPageItem` with `title: "abc"` and `localizedTitle: #Localized("abc")` so raw identity and localized display text are both available
 - keep `GeneralOBPageData` and `GeneralOBPageItem` as the default data model; extend or add models under `GeneralOB/Pages/Model` only when the Figma page has data that cannot fit those types
@@ -229,6 +229,7 @@ If the Figma page presents selectable options, cards, goals, interests, answers,
 - let `GeneralOBCollectionVC` feed data from `mainPage.pageData.items`, apply the diffable data source, handle selection, and call `clickNext`
 - add a persisted selection field in `GeneralOBData`; use `Int?` for single-select and `[Int]?` for multi-select
 - in the external `GeneralOBPage` `page.vc` construction path, restore and save list selection with `vc.makeSelectIndexes`; this is the allowed place to call `makeSelectIndexes`
+- unless Figma or the page announcement explicitly specifies an initial selected option, `page.vc` must not default-select the first option or any other option; when `GeneralOBData` has no saved value, pass `[]` to `vc.makeSelectIndexes`
 - when UI state changes, update the model through the existing page data or selection flow, or update the affected visible cell state directly; do not refresh the collection by reload
 - do not call `makeSelectItems`, `makeSelectIndexes`, or any `makeSelect*` method inside the page; those helpers are only for the external VC initialization code that creates the page
 - represent choice content with `GeneralOBPageItem` fields such as `title`, `localizedTitle`, and `icon`
@@ -242,7 +243,7 @@ If the Figma page presents selectable options, cards, goals, interests, answers,
 - use `select(item:indexPath:)` or `unselect(item:indexPath:)` only when the page needs custom selection behavior; never use `makeSelectItems`, `makeSelectIndexes`, or any `makeSelect*` helper inside the page
 - keep cell sizing, insets, and spacing responsive with `cx390(...)` and existing project layout patterns
 
-Use this external initialization pattern for list pages, replacing `page` with the actual `GeneralOBData` property name:
+Use this external initialization pattern for list pages, replacing `page` with the actual `GeneralOBData` property name. The `else { selectList = [] }` branch is intentional: without saved state or an explicit Figma/announcement initial selection, list pages must start with no selected option.
 
 ```swift
 let selectList: [IndexPath]
@@ -256,7 +257,7 @@ vc.makeSelectIndexes(selectList) { arr in
 }
 ```
 
-For multi-select pages:
+For multi-select pages, use the same no-default rule:
 
 ```swift
 let selectList: [IndexPath]
@@ -334,7 +335,8 @@ Run the strongest reasonable checks:
 - confirm Figma chrome visibility is reflected in `GeneralOBPage`: absent back button -> `canBack = false`, absent progress bar -> `isHideProgress = true`, absent bottom continue button -> `isHideContinueBtn = true`
 - confirm option-style pages inherit from `GeneralOBCollectionVC`, override `registerCell` and `cell(_ c: UICollectionView, path: IndexPath)`, and do not hardcode option arrays in view code
 - for list pages and non-list tap-to-select pages, confirm `GeneralOBData` has a page-specific `Int?` or `[Int]?` selected-index property
-- for list pages, confirm the external `page.vc` construction path calls `vc.makeSelectIndexes` to restore initial selected indexes and save later selected indexes back to `GeneralOBData`
+- for list pages, confirm the external `page.vc` construction path calls `vc.makeSelectIndexes` to restore saved selected indexes and save later selected indexes back to `GeneralOBData`
+- for list pages, confirm `page.vc` does not provide a default selected option when `GeneralOBData` has no saved value, unless Figma or the page announcement explicitly requires an initial selected state
 - for non-list tap-to-select pages, confirm the page restores its selected value from `GeneralOBData`, updates visible selected UI from page-local state, saves changes back to `GeneralOBData` in tap handlers, and does not call `makeSelectIndexes`
 - confirm option-list page metadata matches Figma: `multipleSelected = true` for multi-select pages; `cellHeightIsConsistent = true` for same-height cells and `false` for variable-height cells
 - confirm no `UICollectionView` reload methods are called, including `reloadData()`, `reloadItems(at:)`, and `reloadSections(_:)`
@@ -388,7 +390,7 @@ Keep the final response concise and include:
 - localization confirmation for visible strings and `OOGMacroKits` imports
 - whether the page is option-style, where its `pageData` is defined, and which `GeneralOBCollectionVC` hooks were overridden
 - the `GeneralOBData` property used for selection persistence and whether it is `Int?` or `[Int]?`
-- for list pages, where `page.vc` restores and saves selection through `vc.makeSelectIndexes`
+- for list pages, where `page.vc` restores and saves selection through `vc.makeSelectIndexes`, and whether it correctly starts with no selected option when there is no saved value and no explicit initial-selection requirement
 - for non-list tap-to-select pages, where the page restores, toggles, saves, and re-renders selection through `GeneralOBData`
 - option-list metadata values for `multipleSelected` and `cellHeightIsConsistent`, with the Figma behavior that drove each value
 - confirmation that the implementation does not call any `UICollectionView` reload method
