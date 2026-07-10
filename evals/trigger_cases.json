@@ -160,9 +160,9 @@
     "reason": "Project-specific skill packaging request to bundle the reusable GeneralOB scaffold for other projects."
   },
   {
-    "input": "ob-swift-figma 列表页面没有特殊指定的情况下，在page.vc使用的地方不要给默认选中的选项",
+    "input": "ob-swift-figma 列表页面没有特殊指定的情况下，在page.vc使用的地方不要给默认选中的选项,只使用GeneralOBData的数据，如果数据为空就使用 vc.makeSelectIndexes([])",
     "should_trigger": true,
-    "reason": "Project-specific list-page selection initialization rule: no default selected option in page.vc unless explicitly specified."
+    "reason": "Project-specific list-page selection initialization rule: restore only from GeneralOBData and call vc.makeSelectIndexes([]) when empty unless explicitly specified."
   },
   {
     "input": "教我 SwiftUI 的基础语法。",
