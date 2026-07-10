@@ -277,7 +277,11 @@ class GeneralOBCollectionVC: GeneralOBVC, UICollectionViewDelegateFlowLayout {
     }
     
     func select(item: GeneralOBPageItem, indexPath: IndexPath) {
-        selectedData = [item]
+        if mainPage.multipleSelected {
+            selectedData.append(item)
+        } else {
+            selectedData = [item]
+        }
         
         if mainPage.isHideContinueBtn {
             clickNext()
@@ -285,7 +289,7 @@ class GeneralOBCollectionVC: GeneralOBVC, UICollectionViewDelegateFlowLayout {
     }
     
     func unselect(item: GeneralOBPageItem, indexPath: IndexPath) {
-        
+        selectedData.removeAll(item)
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
