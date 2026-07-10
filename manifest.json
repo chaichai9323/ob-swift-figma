@@ -1,0 +1,31 @@
+{
+  "name": "ob-swift-figma",
+  "version": "0.1.0",
+  "owner": "Yao Team",
+  "updated_at": "2026-06-29",
+  "status": "active",
+  "maturity_tier": "production",
+  "lifecycle_stage": "production",
+  "context_budget_tier": "production",
+  "review_cadence": "monthly",
+  "skill_archetype": "Production",
+  "target_platforms": [
+    "openai",
+    "claude",
+    "generic",
+    "agent-skills-compatible"
+  ],
+  "input_files": [
+    "SKILL.md",
+    "agents/interface.yaml",
+    "references/implementation-workflow.md",
+    "reports/output-risk-profile.md",
+    "evals/trigger_cases.json"
+  ],
+  "output_contract": "Integrated Swift iOS code that implements a Figma target inside the GeneralOB project, automatically reading GeneralOB/OBFigma.md as a resumable page queue when present, processing one not-done page block at a time, treating multiple Figma links inside one block as UI states of the same page, honoring any page-block announcement as hard implementation constraints that must be satisfied before marking the page done, marking page status as todo/in_progress/failed/done, retrying failed or in-progress pages before later pages, committing after each completed page block, with every new page under GeneralOB/Pages, new page files and classes named OB<Page>VC, visible copy localized with #Localized and OOGMacroKits imports, ordinary pages inheriting from GeneralOBVC, option-style pages inheriting from GeneralOBCollectionVC and overriding registerCell plus cell(_:path:) unless the page announcement forbids UICollectionView, one-to-one GeneralOBPage mapping, option data backed by GeneralOBPage.pageData and initialized as GeneralOBPageItem(title: \"abc\", localizedTitle: #Localized(\"abc\")), list pages and non-list tap-to-select pages persisting selected indexes in GeneralOBData as Int? for single-select or [Int]? for multi-select, list pages wiring restore/save through vc.makeSelectIndexes only in the external page.vc creation path, non-list tap-to-select pages restoring/toggling/saving selected state in page-local tap logic through GeneralOBData without makeSelectIndexes, option-list metadata setting multipleSelected true for multi-select pages and cellHeightIsConsistent true for same-height cells or false for variable-height cells, selected cell UI differences from GeneralOBBaseCell defaults corrected by overriding isSelected didSet in the custom cell subclass, Figma page frames taller than 844 implemented with scrollable main content while the bottom continue button stays outside the scroll view as a fixed floating layer, no UICollectionView reload calls, no makeSelect* calls inside page implementations because selection initialization belongs to external VC creation for list pages, no UIImageView.contentMode assignments in page code, bottom continue button states implemented only through nextBtnEnable.didSet overrides, custom GeneralOBBaseCell subclasses adding controls to baseView while preferring titleLab/icon/checkIcon/selectedBaseView, using selectedBaseView for non-solid selected cell backgrounds instead of adding custom selected-background update methods, using cut image assets for checkIcon selected and unselected states, calling super.setupUI(), and using snp.remakeConstraints for inherited layout changes, Figma chrome visibility mapped to GeneralOBPage flags, Figma radius 99 or 999 translated to half-height capsule radii, exported page images stored and referenced as PNG 2x/3x assets with the GeneralOB/<page>/... asset namespace pattern, and title plus subtitle layers kept above all other content.",
+  "rollback_boundary": "Skill package files under .codex/skills/ob-swift-figma only.",
+  "notes": [
+    "Local project fit calibrated against GeneralOB/OBFigma.md queue processing, multiple Figma links per block as same-page UI states, page-block announcement constraints, per-page status markers, retry of failed pages, one git commit per completed page block, GeneralOB/Pages placement, OB<Page>VC naming, #Localized with OOGMacroKits, GeneralOBVC inheritance, GeneralOBCollectionVC option pages except where announcement forbids UICollectionView, GeneralOBData selected-index persistence for list pages and non-list tap-to-select pages, external page.vc makeSelectIndexes restore/save wiring for list pages only, page-local GeneralOBData restore/toggle/save logic for non-list tap-to-select pages, GeneralOBPage multipleSelected and cellHeightIsConsistent metadata, custom cell isSelected.didSet corrections when selected UI differs from base class behavior, scrollable content for Figma frames taller than 844 with a fixed floating bottom button outside the scroll view, no UICollectionView reload calls, no page-local makeSelect* calls, no UIImageView.contentMode assignments, nextBtnEnable.didSet bottom button states, GeneralOBPage.pageData, GeneralOBPageItem title/localizedTitle initialization, GeneralOBBaseCell baseView/titleLab/icon/checkIcon/selectedBaseView customization with selectedBaseView for non-solid selected backgrounds, cut-image check states, super.setupUI(), and snp.remakeConstraints, PNG 2x/3x Figma asset export, GeneralOBPage chrome flags, title/subtitle layer priority, namespaced page asset folders, capsule radius translation, GeneralOB UIKit onboarding patterns, Components, SnapKit, Onboarding, and OOGFontKit.",
+    "No external benchmark scan was run; treat that as missing evidence before broader team distribution."
+  ]
+}

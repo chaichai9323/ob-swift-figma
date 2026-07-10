@@ -1,0 +1,162 @@
+[
+  {
+    "input": "根据这个 Figma 页面在当前 Swift iOS 项目里实现页面，必须复用已有组件和基类。",
+    "should_trigger": true,
+    "reason": "Direct Figma-to-Swift implementation request in an existing iOS codebase."
+  },
+  {
+    "input": "Implement this Figma node as a UIKit onboarding page using our current components.",
+    "should_trigger": true,
+    "reason": "UIKit screen implementation from Figma with local component reuse."
+  },
+  {
+    "input": "把这个 Figma modal 落到 iOS 代码里，沿用项目里的 SnapKit 和字体封装。",
+    "should_trigger": true,
+    "reason": "Figma design to project-specific Swift code."
+  },
+  {
+    "input": "后续根据 Figma 实现的 GeneralOB 页面都要继承 GeneralOBVC。",
+    "should_trigger": true,
+    "reason": "Project-specific Figma-to-iOS implementation constraint for GeneralOBVC inheritance."
+  },
+  {
+    "input": "后续 Figma 页面都放到 Pages 文件夹，选项型页面用 UICollectionView，选项数据放到 GeneralOBPage.pageData 里，并且 GeneralOBPage 和页面一对一。",
+    "should_trigger": true,
+    "reason": "Project-specific placement, option-list, pageData, and one-to-one mapping constraints."
+  },
+  {
+    "input": "选项型 Figma 页面需要 UICollectionView 时继承 GeneralOBCollectionVC，只重写 registerCell 和 cell(_ c: UICollectionView, path: IndexPath)，不要从零实现。",
+    "should_trigger": true,
+    "reason": "Project-specific option-page base class and override hook constraints."
+  },
+  {
+    "input": "实现 Figma 页面时，如果组件圆角是 99 或 999，要设置成组件高度的一半。",
+    "should_trigger": true,
+    "reason": "Project-specific Figma radius translation rule for capsule components."
+  },
+  {
+    "input": "导出 Figma 图片资源时，把当前页面资源放到 GeneralOBPage 对应 page 的 assets 文件夹里，并在 Assets 里使用 namespace。",
+    "should_trigger": true,
+    "reason": "Project-specific asset export namespace and page folder constraint."
+  },
+  {
+    "input": "ob-swift-figma 导出图片使用 namespace 的时候使用 GeneralOB/page/... 的写法。",
+    "should_trigger": true,
+    "reason": "Project-specific asset namespace path format."
+  },
+  {
+    "input": "实现页面时新建文件名字以 OB 开头，后边跟 page，最后是 VC，比如 OBStartVC。",
+    "should_trigger": true,
+    "reason": "Project-specific page file and class naming convention."
+  },
+  {
+    "input": "实现页面的时候标题与副标题的图层要高于其他内容的层级。",
+    "should_trigger": true,
+    "reason": "Project-specific title and subtitle layer ordering constraint."
+  },
+  {
+    "input": "实现页面的时候，左上角没有返回按钮 page.canBack=false，顶部没有进度条 page.isHideProgress=true，页面底部没有按钮 page.isHideContinueBtn=true。",
+    "should_trigger": true,
+    "reason": "Project-specific GeneralOBPage chrome visibility metadata mapping."
+  },
+  {
+    "input": "实现页面的时候文案字符串显示使用 #Localized(\"\") 来本地化，文件顶部需要 import OOGMacroKits。",
+    "should_trigger": true,
+    "reason": "Project-specific localization macro and import requirement."
+  },
+  {
+    "input": "GeneralOBPageItem 初始化的时候 title=\"abc\", localizedTitle=#Localized(\"abc\") 使用这种写法。",
+    "should_trigger": true,
+    "reason": "Project-specific option data initialization convention for GeneralOBPageItem."
+  },
+  {
+    "input": "继承 GeneralOBBaseCell 的时候新建控件添加到 baseView，优先使用 titleLab、icon、checkIcon，不满足 UI 时用 SnapKit remakeConstraints，setupUI 要调用基类。",
+    "should_trigger": true,
+    "reason": "Project-specific GeneralOBBaseCell subclassing and layout customization convention."
+  },
+  {
+    "input": "GeneralOBBaseCell 的子类 checkIcon 使用切图实现选中和非选中的状态展示，不要使用其他方式。",
+    "should_trigger": true,
+    "reason": "Project-specific checkIcon selected and unselected image asset requirement."
+  },
+  {
+    "input": "从 Figma 下载图片资源的时候不要使用 svg，使用 png 格式的 2x、3x 图片。",
+    "should_trigger": true,
+    "reason": "Project-specific Figma asset export format and scale requirement."
+  },
+  {
+    "input": "ob-swift-figma 实现页面的时候，UICollectionView 永远不要调用 reload 方法。",
+    "should_trigger": true,
+    "reason": "Project-specific prohibition on UICollectionView reload calls in Figma page implementations."
+  },
+  {
+    "input": "ob-swift-figma 选项列表页面，支持多选的时候 page.multipleSelected = true。列表的 cell 高度一致的时候 page.cellHeightIsConsistent=true 否则 page.cellHeightIsConsistent=false。",
+    "should_trigger": true,
+    "reason": "Project-specific option-list page metadata for multi-select behavior and cell-height consistency."
+  },
+  {
+    "input": "ob-swift-figma 执行任务的时候自动读取 OBFigma.md，根据内容完成一个页面以后使用 git 提交，然后继续下一个页面，并把页面完成状态做个标识，失败时自动重试当前页面。",
+    "should_trigger": true,
+    "reason": "Project-specific resumable OBFigma.md queue processing with per-page status, commit, and retry behavior."
+  },
+  {
+    "input": "ob-swift-figma 实现页面的时候，底部按钮的不同状态通过重写基类的 nextBtnEnable 属性的 didSet 实现，不要新写方法。",
+    "should_trigger": true,
+    "reason": "Project-specific bottom continue button state customization through nextBtnEnable.didSet."
+  },
+  {
+    "input": "ob-swift-figma 页面里边不能调用 makeSelect 方法，这个方法是在外部初始化页面 VC 的地方调用的。",
+    "should_trigger": true,
+    "reason": "Project-specific prohibition on calling makeSelect helpers inside page implementations."
+  },
+  {
+    "input": "ob-swift-figma 页面里边使用 UIImageView 控件的时候不要指定 contentMode。",
+    "should_trigger": true,
+    "reason": "Project-specific prohibition on assigning UIImageView contentMode in page implementations."
+  },
+  {
+    "input": "ob-swift-figma OBFigma.md 任务列表中的某一个页面，可能会有多个 figma 页面链接，这是同一个页面的多种 UI 展示状态。",
+    "should_trigger": true,
+    "reason": "Project-specific OBFigma.md queue rule: multiple Figma links in one page block are UI states of one page."
+  },
+  {
+    "input": "ob-swift-figma OBFigma.md任务列表中的某一个页面，如果有announcement，需要满足声明的条件",
+    "should_trigger": true,
+    "reason": "Project-specific OBFigma announcement constraints must be honored."
+  },
+  {
+    "input": "ob-swift-figma 页面高度大于844的时候，页面内容要做成滑动的，底部按钮不跟随内容滑动始终悬浮在滑动内容的上层",
+    "should_trigger": true,
+    "reason": "Project-specific tall-page scroll behavior with fixed floating bottom button."
+  },
+  {
+    "input": "ob-swift-figma 如果列表页面选中cell的背景样式不是纯颜色的情况，不要单独新加方法实现，使用基类的selectedBaseView这个属性实现",
+    "should_trigger": true,
+    "reason": "Project-specific GeneralOBBaseCell selectedBaseView rule for non-solid selected cell backgrounds."
+  },
+  {
+    "input": "ob-swift-figma 如果页面是列表页面或者有点击切换选择的功能，就在GeneralOBData里边添加对应页面的属性，var page: Int? 或者 var page: [Int]?，列表页面在page.vc属性使用vc页面的时候，添加选择状态、恢复状态、保存状态相关逻辑，包含多选的处理",
+    "should_trigger": true,
+    "reason": "Project-specific persisted selection state in GeneralOBData with external page.vc makeSelectIndexes wiring."
+  },
+  {
+    "input": "ob-swift-figma 如果页面是有点击切换选择功能的非列表页面，也需要添加选择状态，恢复状态，保存状态的相关代码",
+    "should_trigger": true,
+    "reason": "Project-specific non-list tap-to-select pages must restore, toggle, and save selection state through GeneralOBData."
+  },
+  {
+    "input": "ob-swift-figma 如果页面是列表页面,当前页面的cell是否选中的UI展示跟基类不一致的，要在子类的cell中重写isSelected属性的didSet进行修正",
+    "should_trigger": true,
+    "reason": "Project-specific selected cell UI correction through isSelected.didSet in the custom cell subclass."
+  },
+  {
+    "input": "教我 SwiftUI 的基础语法。",
+    "should_trigger": false,
+    "reason": "Generic tutorial, no Figma or existing project implementation."
+  },
+  {
+    "input": "把这个 Figma landing page 做成 React 网页。",
+    "should_trigger": false,
+    "reason": "Figma-to-web work, not Swift iOS."
+  }
+]

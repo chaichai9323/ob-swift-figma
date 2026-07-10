@@ -1,0 +1,32 @@
+interface:
+  display_name: "OB Swift Figma"
+  short_description: "Implement Figma screens in Swift using existing iOS project architecture"
+  default_prompt: "Use $ob-swift-figma to implement this Figma screen in the current Swift iOS project, reusing existing components, base classes, pods, and helpers."
+compatibility:
+  canonical_format: "agent-skills"
+  adapter_targets:
+    - "openai"
+    - "claude"
+    - "generic"
+    - "vscode"
+  activation:
+    mode: "manual"
+    paths:
+      - "**/*.swift"
+      - "**/*.xcodeproj/**"
+      - "**/*.xcworkspace/**"
+      - "**/*.xcassets/**"
+      - "Podfile"
+      - "Package.swift"
+  execution:
+    context: "inline"
+    shell: "bash"
+  trust:
+    source_tier: "local"
+    remote_inline_execution: "forbid"
+    remote_metadata_policy: "allow-metadata-only"
+  degradation:
+    openai: "metadata-adapter"
+    claude: "neutral-source-plus-adapter"
+    generic: "neutral-source"
+    vscode: "agent-skills-source-with-vscode-notes"
