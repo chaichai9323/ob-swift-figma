@@ -67,9 +67,12 @@ The skill package includes a fallback scaffold at `assets/GeneralOB`. This bundl
 
 If `GeneralOB` is missing or any required file/folder is absent:
 
-- copy the skill-bundled `assets/GeneralOB` folder into the engineering project root as `GeneralOB`
+- copy the skill-bundled `assets/GeneralOB` folder into the engineering project directory as `GeneralOB`, beside the app's Xcode project or existing app source root as appropriate for that repository
+- add every copied Swift file under `GeneralOB` to the primary app target's Compile Sources or the equivalent project-generation source list
+- when editing `.xcodeproj/project.pbxproj` directly, create the needed file references, groups, and `PBXSourcesBuildPhase` entries for copied Swift files without adding unrelated files
+- if the project is generated from a tool such as XcodeGen or Tuist, update the generator config instead of hand-editing generated project files, then regenerate if that is the repository convention
 - do not create placeholder or stub versions of the missing files just to pass the check
-- re-run the same required-path verification after the copy
+- re-run the same required-path verification after the copy and verify target membership for the copied Swift files
 - stop and report the missing bundled scaffold if `assets/GeneralOB` is unavailable or incomplete
 
 Only continue to `OBFigma.md` queue parsing or Figma implementation after this preflight passes.
@@ -119,7 +122,7 @@ When the Figma data and screenshot conflict, trust the screenshot for visual com
 Before editing, inspect the local codebase:
 
 - complete the `OB-Task-Doc` preflight first and record whether the folder was already present or copied from the skill-bundled `assets/OB-Task-Doc` scaffold
-- complete the `GeneralOB` structure preflight first and record whether the folder was already present or copied from the skill-bundled `assets/GeneralOB` scaffold
+- complete the `GeneralOB` structure preflight first and record whether the folder was already present or copied from the skill-bundled `assets/GeneralOB` scaffold; if copied, record how the Swift files were added to the app target
 - `sed -n '1,240p' OB-Task-Doc/OBFigma.md` to read the primary page queue when present
 - `sed -n '1,240p' GeneralOB/OBFigma.md` only as a legacy fallback when `OB-Task-Doc/OBFigma.md` is absent
 - `rg --files -g '*.swift'` to list Swift files
@@ -136,6 +139,7 @@ Before editing, inspect the local codebase:
 - `rg "reloadData|reloadItems|reloadSections|\\.reload" -n` to identify and avoid forbidden collection reload patterns
 - `rg "class .*GeneralOBBaseCell|baseView|titleLab|checkIcon|selectedBaseView|remakeConstraints|setupUI" -n` for option cell customization patterns
 - read `Podfile`, `Podfile.lock`, `Package.swift`, or project files to identify available libraries
+- inspect the Xcode project, workspace, or project-generation config to identify the primary app target before adding copied `GeneralOB` Swift files
 - inspect nearby screens with similar UI before creating new controls
 
 Record the local primitives you will reuse before changing files.
@@ -360,7 +364,8 @@ Use assets deliberately:
 Run the strongest reasonable checks:
 
 - confirm the `OB-Task-Doc` preflight passed before Figma reading and implementation, and that any folder copied from `assets/OB-Task-Doc` was placed at the project root without adding it to `.xcodeproj`, app targets, build phases, or Copy Bundle Resources
-- confirm the `GeneralOB` structure preflight passed before Figma reading and implementation, and that any folder copied from `assets/GeneralOB` was verified after copying
+- confirm the `GeneralOB` structure preflight passed before Figma reading and implementation, that any folder copied from `assets/GeneralOB` was placed in the engineering project directory, and that copied Swift files are members of the primary app target Compile Sources or equivalent generated target source list
+- if `GeneralOB` was copied from the skill scaffold, run a targeted project inspection such as searching `project.pbxproj` or the generator config for `GeneralOBCollectionVC.swift`, `GeneralOBPage.swift`, `GeneralOBPage+Data.swift`, `GeneralOBPage+VC.swift`, and `GeneralOBVC.swift`
 - inspect `git diff` for accidental unrelated churn
 - if running from `OBFigma.md`, confirm only the current page block's status marker changed and it reflects `in_progress`, `failed`, or `done` accurately
 - if the current `OBFigma.md` block contains multiple Figma links, confirm all links were treated as UI states of the same page and no extra page enum/file/commit was created for a state link
@@ -419,7 +424,7 @@ When processing pages from `OBFigma.md`:
 Keep the final response concise and include:
 
 - `OB-Task-Doc` preflight result, including whether the root folder already existed or was copied from the skill-bundled `assets/OB-Task-Doc` scaffold, and confirmation that it was not added to the Xcode project
-- `GeneralOB` structure preflight result, including whether the required folder already existed or was copied from the skill-bundled `assets/GeneralOB` scaffold before implementation
+- `GeneralOB` structure preflight result, including whether the required folder already existed or was copied from the skill-bundled `assets/GeneralOB` scaffold before implementation, where it was copied in the engineering project directory, and how target membership was verified
 - `OBFigma.md` page id, page title, status transition, attempt count, and commit hash when queue mode is used
 - every Figma URL in the processed `OBFigma.md` block and the UI state each one represents
 - any `### announcement` conditions in the processed block and how the implementation satisfies each condition

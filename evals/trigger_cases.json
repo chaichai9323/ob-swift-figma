@@ -175,6 +175,11 @@
     "reason": "Project-specific announcement reference resolution rule: search OB-Task-Doc first for reference images and documents."
   },
   {
+    "input": "ob-swift-figma 复制内置GeneralOB文件夹的时候保证粘贴在工程目录，保证放进target里边",
+    "should_trigger": true,
+    "reason": "Project-specific GeneralOB scaffold copy rule: place it in the engineering project directory and add copied Swift files to the app target."
+  },
+  {
     "input": "教我 SwiftUI 的基础语法。",
     "should_trigger": false,
     "reason": "Generic tutorial, no Figma or existing project implementation."
