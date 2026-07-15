@@ -14,7 +14,7 @@ final class GeneralLinkTextView: UITextView, UITextViewDelegate {
     @discardableResult
     func setlinkAttribute(_ linkText: String,
                           _ linkURLText: String,
-                          _ attributes: [NSAttributedString.Key: Any]? = nil) -> LinkTextView {
+                          _ attributes: [NSAttributedString.Key: Any]? = nil) -> Self {
         let contentText = self.attributedText.string
 
         let attributesString = NSMutableAttributedString(attributedString: self.attributedText)
@@ -60,8 +60,8 @@ final class GeneralLinkTextView: UITextView, UITextViewDelegate {
         with text: String,
         attributes: [NSAttributedString.Key: Any],
         delegate: UITextViewDelegate? = nil
-    ) -> LinkTextView {
-        let textView = LinkTextView()
+    ) -> GeneralLinkTextView {
+        let textView = GeneralLinkTextView()
         textView.delegate = (delegate != nil) ? delegate : textView
         textView.contentInset = UIEdgeInsets.zero
         textView.textContainerInset = .zero

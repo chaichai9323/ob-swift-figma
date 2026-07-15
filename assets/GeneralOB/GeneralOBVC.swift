@@ -21,7 +21,7 @@ class GeneralOBVC: OBBaseViewController {
             mainPage.nextButtonName,
             for: .normal
         )
-        btn.titleLabel?.font = .figtree(.semiBold, fontSize: cx390(17))
+        btn.titleLabel?.font = .laien(.semiBold, fontSize: cx390(17))
         btn.cornerRadius = cx390(32)
         btn.isHidden = mainPage.isHideContinueBtn
         btn.addAction(
@@ -53,7 +53,7 @@ class GeneralOBVC: OBBaseViewController {
             frame: .zero,
             text: nil,
             textColor: .init("#27242E"),
-            font: .figtree(.bold, fontSize: cx390(30)),
+            font: .laien(.bold, fontSize: cx390(30)),
             textAligment: .left
         )
         res.numberOfLines = 0

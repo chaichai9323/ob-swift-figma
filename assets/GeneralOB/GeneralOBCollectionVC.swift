@@ -10,7 +10,7 @@ class GeneralOBBaseCell: UICollectionViewCell {
             frame: .zero,
             text: nil,
             textColor: .init("#27242ECC"),
-            font: .figtree(.semiBold, fontSize: cx390(17)),
+            font: .laien(.semiBold, fontSize: cx390(17)),
             textAligment: .center
         )
         res.numberOfLines = 0
