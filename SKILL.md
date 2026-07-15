@@ -37,14 +37,15 @@ Build GeneralOB onboarding pages from Figma by first confirming the current proj
 24. When subclassing `GeneralOBBaseCell`, add new controls to `baseView`, prefer the inherited `titleLab`, `icon`, `checkIcon`, and `selectedBaseView`, implement `checkIcon` selected and unselected states with image assets only, call `super.setupUI()` in overridden `setupUI`, and use SnapKit `snp.remakeConstraints` when adjusting inherited constraints.
 25. If a list cell's selected UI differs from the base class behavior, override `isSelected` in the cell subclass and apply the correction in `didSet`, using inherited controls such as `selectedBaseView`, `checkIcon`, `titleLab`, and `icon` where possible.
 26. Localize every user-visible string with `#Localized("...")` and add `import OOGMacroKits` at the top of Swift files that use the macro.
-27. Add or update assets only when they are present in Figma or explicitly required; export Figma images as PNG resources with `2x` and `3x` variants, not SVG; put each page's exported image assets inside the matching `GeneralOBPage` folder under the `GeneralOB` asset namespace.
-28. Keep title and subtitle layers above all other page content, including images, collection views, cards, decorations, gradients, and background art.
-29. When the Figma page frame height is greater than `844`, put page content into a scrollable area while keeping the bottom continue button outside that scroll view so it stays fixed and visually floats above scrolling content.
-30. Map Figma chrome visibility to `GeneralOBPage` metadata: no top-left back button means `page.canBack = false`, no top progress bar means `page.isHideProgress = true`, and no bottom continue button means `page.isHideContinueBtn = true`.
-31. Verify compile-time integration, layout responsiveness, safe areas, iPad or small-device variants, visual fidelity against the Figma screenshot, scroll behavior for frames taller than `844`, persisted selection restore/save behavior for both list and non-list selectable pages, cell subclass `isSelected.didSet` corrections when required, and all announcement conditions.
-32. On success, mark the page `done` in `OBFigma.md`, stage only the current page's implementation, asset, project, and status-marker changes, create one git commit for that page, then continue to the next not-done page.
-33. On failure, mark the page `failed` in `OBFigma.md` with the attempt count and short reason, do not continue to later pages, and retry the current page from its status marker on the next run.
-34. Summarize changed files, reused project primitives, page status updates, commit hashes, announcement conditions and how they were satisfied, any fidelity compromises, and verification results.
+27. When a page contains privacy policy and terms-of-use agreement text, implement it with `GeneralLinkTextView.createLinkView`, localized `Privacy Policy`, localized `Terms of Use`, localized `By continuing you agree to the %@ and %@`, and clickable `QACheck.PRIVACY_URL` / `QACheck.TERM_OF_USE_URL` links; do not use a plain `UILabel` or non-clickable attributed text for this agreement copy.
+28. Add or update assets only when they are present in Figma or explicitly required; export Figma images as PNG resources with `2x` and `3x` variants, not SVG; put each page's exported image assets inside the matching `GeneralOBPage` folder under the `GeneralOB` asset namespace.
+29. Keep title and subtitle layers above all other page content, including images, collection views, cards, decorations, gradients, and background art.
+30. When the Figma page frame height is greater than `844`, put page content into a scrollable area while keeping the bottom continue button outside that scroll view so it stays fixed and visually floats above scrolling content.
+31. Map Figma chrome visibility to `GeneralOBPage` metadata: no top-left back button means `page.canBack = false`, no top progress bar means `page.isHideProgress = true`, and no bottom continue button means `page.isHideContinueBtn = true`.
+32. Verify compile-time integration, layout responsiveness, safe areas, iPad or small-device variants, visual fidelity against the Figma screenshot, scroll behavior for frames taller than `844`, persisted selection restore/save behavior for both list and non-list selectable pages, cell subclass `isSelected.didSet` corrections when required, clickable privacy/terms agreement links when present, and all announcement conditions.
+33. On success, mark the page `done` in `OBFigma.md`, stage only the current page's implementation, asset, project, and status-marker changes, create one git commit for that page, then continue to the next not-done page.
+34. On failure, mark the page `failed` in `OBFigma.md` with the attempt count and short reason, do not continue to later pages, and retry the current page from its status marker on the next run.
+35. Summarize changed files, reused project primitives, page status updates, commit hashes, announcement conditions and how they were satisfied, any fidelity compromises, and verification results.
 
 ## Project Fit Rules
 
@@ -64,6 +65,7 @@ Build GeneralOB onboarding pages from Figma by first confirming the current proj
 - Place all new Figma page implementation files under `GeneralOB/Pages`; place reusable page data models under `GeneralOB/Pages/Model` only when the existing `GeneralOBPageData` shape is insufficient.
 - New page file names and class names must use `OB<Page>VC`, where `<Page>` follows the `GeneralOBPage` case in PascalCase; for example `.start` maps to `OBStartVC.swift` and `OBStartVC`.
 - Every user-visible string must be wrapped with `#Localized("...")`, including labels, button titles, option titles, tag titles, cell text, subtitles, descriptions, and `GeneralOBPage.pageData` text; any Swift file using that macro must include `import OOGMacroKits` near the top.
+- If a page includes the agreement sentence with `Privacy Policy` and `Terms of Use`, implement it as a clickable `GeneralLinkTextView` using the project agreement snippet in `references/implementation-workflow.md`; the privacy and terms substrings must link to `QACheck.PRIVACY_URL` and `QACheck.TERM_OF_USE_URL`.
 - For this project family, every new Figma onboarding page should inherit from `GeneralOBVC` and continue to use `GeneralOBPage`, `GeneralOBPage.pageData`, `OBPage`, `OnboardingPagesDataSource`, `Components`, `SnapKit`, and `OOGFontKit` patterns.
 - Keep `GeneralOBPage` and page implementations one-to-one: one enum case owns one page class or one clearly isolated `GeneralOBVC` rendering branch.
 - Match Figma navigation chrome with `GeneralOBPage` flags: if the design has no top-left back button, set that page's `canBack` to `false`; if it has no top progress bar, set `isHideProgress` to `true`; if it has no bottom continue button, set `isHideContinueBtn` to `true`.
@@ -105,6 +107,7 @@ Build GeneralOB onboarding pages from Figma by first confirming the current proj
 - Confirm new page files are under `GeneralOB/Pages` and that `GeneralOBPage` maps one-to-one to the implemented page.
 - Confirm each new page file and class follows the `OB<Page>VC` naming rule.
 - Confirm displayed strings use `#Localized("...")` and each file using it imports `OOGMacroKits`.
+- If the page contains privacy/terms agreement copy, confirm it uses `GeneralLinkTextView.createLinkView` with clickable `QACheck.PRIVACY_URL` and `QACheck.TERM_OF_USE_URL` links.
 - Confirm `GeneralOBPage` flags match Figma chrome visibility for back button, progress bar, and bottom continue button.
 - For option-style pages, confirm the page inherits from `GeneralOBCollectionVC`, overrides `registerCell` and `cell(_ c: UICollectionView, path: IndexPath)`, and reads options from `mainPage.pageData.items`.
 - For list pages or non-list pages with tap-to-select behavior, confirm `GeneralOBData` has the matching persisted selection property.

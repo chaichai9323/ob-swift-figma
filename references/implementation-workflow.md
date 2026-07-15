@@ -182,6 +182,7 @@ Map Figma layers to existing project primitives:
 - layer order: title and subtitle views must sit above all images, collection views, cards, decorations, gradients, and background art
 - typography: local font APIs such as `UIFont.figtree(...)` or existing text styles
 - localization: wrap all displayed copy in `#Localized("...")` and import `OOGMacroKits` in files that use the macro
+- agreement links: when a page contains privacy policy and terms-of-use copy, use `GeneralLinkTextView` with `QACheck.PRIVACY_URL` and `QACheck.TERM_OF_USE_URL` so both links are tappable
 - spacing: local scale helpers such as `cx390(...)`; include iPad and small-device variants when the project does
 - colors: local token, asset, or hex initializer already used by the project
 - corner radius: copy ordinary Figma radii through local helpers; translate Figma radii `99` and `999` to half of the component height
@@ -229,6 +230,46 @@ For UIKit pages:
 - define views as `lazy var` or local equivalents consistent with nearby code
 - add `import OOGMacroKits` at the top of any Swift file that renders localized text with `#Localized("...")`
 - set visible copy with the macro, for example `titleLab.text = #Localized("Title")`, `button.setTitle(#Localized("Continue"), for: .normal)`, and `GeneralOBPageItem(title: "Choice", localizedTitle: #Localized("Choice"), icon: "...")`
+- when a page includes the agreement text for `Privacy Policy` and `Terms of Use`, implement it with this project pattern so both links remain clickable; do not replace it with a plain `UILabel`, a static `NSAttributedString`, or non-clickable text:
+
+```swift
+private lazy var agreementLabel: GeneralLinkTextView = {
+    let privacy = #Localized("Privacy Policy")
+    let term = #Localized("Terms of Use")
+    let s = #Localized("By continuing you agree to the %@ and %@")
+    let txt = String(format: s, privacy, term)
+
+    let baseAttributes: [NSAttributedString.Key: Any] = [
+        .font: UIFont.laien(.regular, fontSize: cx390(14)),
+        .foregroundColor: UIColor("#A9B2C2"),
+        .paragraphStyle: centeredParagraphStyle
+    ]
+    let linkAttributes: [NSAttributedString.Key: Any] = [
+        .font: UIFont.laien(.regular, fontSize: cx390(14)),
+        .underlineStyle: NSUnderlineStyle.single.rawValue,
+        .underlineColor: UIColor("#7C8798"),
+        .paragraphStyle: self.centeredParagraphStyle
+    ]
+
+    let label = GeneralLinkTextView.createLinkView(
+        with: txt,
+        attributes: baseAttributes
+    )
+    label.tintColor = UIColor("#7C8798")
+    label.setlinkAttribute(
+        privacy,
+        QACheck.PRIVACY_URL,
+        linkAttributes
+    )
+    label.setlinkAttribute(
+        term,
+        QACheck.TERM_OF_USE_URL,
+        linkAttributes
+    )
+    return label
+}()
+```
+
 - for option data, use the full item initializer style `GeneralOBPageItem(title: "Choice", localizedTitle: #Localized("Choice"), icon: "...")` rather than storing only a localized title
 - add subviews once, then set constraints in the same style used nearby
 - add title and subtitle views after lower-priority content or explicitly call `view.bringSubviewToFront(titleView)` and `view.bringSubviewToFront(subtitleView)` after adding dynamic content
@@ -376,6 +417,7 @@ Run the strongest reasonable checks:
 - confirm all new page implementation files are under `GeneralOB/Pages`
 - confirm new page file names and class names follow `OB<Page>VC`
 - confirm every new user-visible string uses `#Localized("...")` and files using the macro import `OOGMacroKits`
+- if the page contains privacy policy or terms-of-use agreement text, confirm it is implemented with `GeneralLinkTextView.createLinkView`, localized `Privacy Policy`, localized `Terms of Use`, localized `By continuing you agree to the %@ and %@`, and clickable `QACheck.PRIVACY_URL` / `QACheck.TERM_OF_USE_URL` link attributes
 - confirm each new `GeneralOBPage` case has one matching page implementation and one `pageData` branch
 - confirm Figma chrome visibility is reflected in `GeneralOBPage`: absent back button -> `canBack = false`, absent progress bar -> `isHideProgress = true`, absent bottom continue button -> `isHideContinueBtn = true`
 - confirm option-style pages inherit from `GeneralOBCollectionVC`, override `registerCell` and `cell(_ c: UICollectionView, path: IndexPath)`, and do not hardcode option arrays in view code
@@ -435,6 +477,7 @@ Keep the final response concise and include:
 - `GeneralOBPage` chrome flags changed for back button, progress bar, or bottom continue button
 - new page class and filename, confirming the `OB<Page>VC` naming rule
 - localization confirmation for visible strings and `OOGMacroKits` imports
+- privacy/terms agreement confirmation when present, including that `GeneralLinkTextView` is used and both `QACheck` URLs are clickable
 - whether the page is option-style, where its `pageData` is defined, and which `GeneralOBCollectionVC` hooks were overridden
 - the `GeneralOBData` property used for selection persistence and whether it is `Int?` or `[Int]?`
 - for list pages, where `page.vc` restores and saves selection through `vc.makeSelectIndexes`, and whether it calls `vc.makeSelectIndexes([])` when there is no saved value and no explicit initial-selection requirement
