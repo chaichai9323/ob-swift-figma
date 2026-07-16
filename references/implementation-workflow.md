@@ -134,6 +134,7 @@ Before editing, inspect the local codebase:
 - `rg "GeneralOBCollectionVC|registerCell|cell\\(_ c: UICollectionView|pageData|GeneralOBPageData|GeneralOBPageItem|UICollectionView" -n` for page data and option-list patterns
 - `rg "GeneralOBData|makeSelectIndexes|makeSelectItems|var .*: Int\\?|var .*: \\[Int\\]\\?" -n` for persisted selection state, list-page external VC initialization patterns, and non-list page tap handlers
 - `rg "multipleSelected|cellHeightIsConsistent" -n` for option-list page metadata
+- `rg "UIImage\\s*\\(\\s*systemName:|systemName:" -n GeneralOB/Pages` to ensure changed list-page code does not substitute Figma list-item icons with system symbols
 - `rg "makeSelectItems|makeSelectIndexes|makeSelect" -n` to ensure page implementations do not call external selection-initialization helpers
 - `rg "nextBtnEnable|nextButton|update.*Button|refresh.*Button" -n` for bottom continue button state patterns
 - `rg "UIImageView|contentMode" -n` to find image views and verify page implementations do not assign `contentMode`
@@ -317,6 +318,7 @@ If the Figma page presents selectable options, cards, goals, interests, answers,
 - do not call `makeSelectItems`, `makeSelectIndexes`, or any `makeSelect*` method inside the page; those helpers are only for the external VC initialization code that creates the page
 - represent choice content with `GeneralOBPageItem` fields such as `title`, `localizedTitle`, and `icon`
 - initialize choice content with both `title` and `localizedTitle`, for example `GeneralOBPageItem(title: "abc", localizedTitle: #Localized("abc"), icon: "...")`
+- when Figma shows an icon in a list item, export that icon as a PNG asset and set `GeneralOBPageItem.icon` to its namespaced asset name; do not use SF Symbols, `UIImage(systemName:)`, `systemName:`, drawn shapes, or runtime vectors as a substitute. When Figma provides different selected and unselected list icons, export and wire both state-specific assets.
 - use `#Localized("...")` for `localizedTitle` and any visible cell or tag text
 - when subclassing `GeneralOBBaseCell`, add new controls to `baseView` rather than `contentView`; prefer inherited `titleLab`, `icon`, `checkIcon`, and `selectedBaseView` before adding replacement controls; implement `checkIcon` selected and unselected state display with cut image resources only, typically through `checkIcon.image` and `checkIcon.highlightedImage`; do not use background colors, borders, SF Symbols, drawn shapes, or runtime vector drawing for those states; call `super.setupUI()` from any override; use `snp.remakeConstraints` to reposition inherited controls when the Figma layout requires different constraints
 - if the selected UI shown in Figma does not match the base class selected-state behavior, override `isSelected` in the custom cell subclass and put the UI correction in `didSet`; keep this correction inside the cell and update inherited controls such as `selectedBaseView`, `checkIcon`, `titleLab`, and `icon` where possible
@@ -395,6 +397,7 @@ Use assets deliberately:
 - create or update `GeneralOB/Assets.xcassets/GeneralOB/Contents.json` with `"properties" : { "provides-namespace" : true }`
 - create or update `GeneralOB/Assets.xcassets/GeneralOB/<page>/Contents.json` with `"properties" : { "provides-namespace" : true }`
 - choose descriptive, project-consistent image set names inside the page namespace
+- treat Figma list-item icons as required page assets whenever the design displays them; keep their image set names descriptive and reference them through `GeneralOB/<page>/...`, never through a system-symbol fallback
 - for `GeneralOBBaseCell.checkIcon`, provide separate selected and unselected cut images in the asset catalog and wire them as image states instead of drawing the state in code
 - reference namespaced assets in Swift with the `GeneralOB/<page>/...` pattern, such as `UIImage(named: "GeneralOB/<page>/<assetName>")`; do not rely on unqualified root-level image names for page-specific exports
 - keep existing root-level assets only when they are already shared cross-page assets
@@ -421,6 +424,7 @@ Run the strongest reasonable checks:
 - confirm each new `GeneralOBPage` case has one matching page implementation and one `pageData` branch
 - confirm Figma chrome visibility is reflected in `GeneralOBPage`: absent back button -> `canBack = false`, absent progress bar -> `isHideProgress = true`, absent bottom continue button -> `isHideContinueBtn = true`
 - confirm option-style pages inherit from `GeneralOBCollectionVC`, override `registerCell` and `cell(_ c: UICollectionView, path: IndexPath)`, and do not hardcode option arrays in view code
+- when Figma displays list-item icons, confirm every icon uses the corresponding exported `GeneralOB/<page>/...` asset, state-specific Figma assets are used when shown, and changed list-page code has no `UIImage(systemName:)` or `systemName:` fallback
 - for list pages and non-list tap-to-select pages, confirm `GeneralOBData` has a page-specific `Int?` or `[Int]?` selected-index property
 - for list pages, confirm the external `page.vc` construction path calls `vc.makeSelectIndexes` to restore saved selected indexes and save later selected indexes back to `GeneralOBData`
 - for list pages, confirm `page.vc` uses only `GeneralOBData` as the restore source and calls `vc.makeSelectIndexes([])` when `GeneralOBData` has no saved value, unless Figma or the page announcement explicitly requires an initial selected state

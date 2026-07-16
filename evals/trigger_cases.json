@@ -80,6 +80,11 @@
     "reason": "Project-specific checkIcon selected and unselected image asset requirement."
   },
   {
+    "input": "ob-swift-figma 遇到列表页面时，不要用系统符号，列表 icon 必须使用 Figma 设计中的图片资源。",
+    "should_trigger": true,
+    "reason": "Project-specific list-item icon requirement: Figma-exported image assets replace all system-symbol fallbacks."
+  },
+  {
     "input": "从 Figma 下载图片资源的时候不要使用 svg，使用 png 格式的 2x、3x 图片。",
     "should_trigger": true,
     "reason": "Project-specific Figma asset export format and scale requirement."
