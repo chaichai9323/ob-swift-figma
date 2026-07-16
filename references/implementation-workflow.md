@@ -321,8 +321,8 @@ If the Figma page presents selectable options, cards, goals, interests, answers,
 - when Figma shows an icon in a list item, export that icon as a PNG asset and set `GeneralOBPageItem.icon` to its namespaced asset name; do not use SF Symbols, `UIImage(systemName:)`, `systemName:`, drawn shapes, or runtime vectors as a substitute. When Figma provides different selected and unselected list icons, export and wire both state-specific assets.
 - use `#Localized("...")` for `localizedTitle` and any visible cell or tag text
 - when subclassing `GeneralOBBaseCell`, add new controls to `baseView` rather than `contentView`; prefer inherited `titleLab`, `icon`, `checkIcon`, and `selectedBaseView` before adding replacement controls; implement `checkIcon` selected and unselected state display with cut image resources only, typically through `checkIcon.image` and `checkIcon.highlightedImage`; do not use background colors, borders, SF Symbols, drawn shapes, or runtime vector drawing for those states; call `super.setupUI()` from any override; use `snp.remakeConstraints` to reposition inherited controls when the Figma layout requires different constraints
-- if the selected UI shown in Figma does not match the base class selected-state behavior, override `isSelected` in the custom cell subclass and put the UI correction in `didSet`; keep this correction inside the cell and update inherited controls such as `selectedBaseView`, `checkIcon`, `titleLab`, and `icon` where possible
-- if the selected cell background is not a pure color, such as a gradient, image, textured fill, multi-layer shape, or other complex Figma background, configure that style through `GeneralOBBaseCell.selectedBaseView`; do not create a separate method such as `updateSelectedBackground`, `refreshSelectedStyle`, or another page-specific selected-background toggle method
+- if the selected UI shown in Figma does not match the base class selected-state behavior, override `isSelected` in the custom cell subclass and put the UI correction in `didSet`; keep this correction inside the cell and update only foreground content such as `titleLab`, `icon`, `checkIcon`, and other text or image state. Do not change `baseView` or `selectedBaseView` backgrounds, borders, layer properties, corner radius, shadows, gradients, or other selected-container visual effects
+- do not implement Figma-specific selected cell backgrounds, borders, gradients, shadows, or other container effects in a custom cell's `isSelected`; preserve the base class container treatment
 - update `GeneralOBPage+Data.swift` so the matching enum case returns the full `GeneralOBPageData`
 - override sizing or spacing delegate methods only when the Figma layout differs from `GeneralOBCollectionVC` defaults
 - use `select(item:indexPath:)` or `unselect(item:indexPath:)` only when the page needs custom selection behavior; never use `makeSelectItems`, `makeSelectIndexes`, or any `makeSelect*` helper inside the page
@@ -436,8 +436,8 @@ Run the strongest reasonable checks:
 - confirm no page implementation, page-local custom view, or cell assigns `UIImageView.contentMode`
 - confirm option data uses `GeneralOBPageItem(title: "abc", localizedTitle: #Localized("abc"), ...)`
 - confirm custom `GeneralOBBaseCell` subclasses add new controls to `baseView`, reuse `titleLab`, `icon`, `checkIcon`, and `selectedBaseView` where possible, implement `checkIcon` selected and unselected states with cut images only, call `super.setupUI()`, and use `snp.remakeConstraints` for inherited layout changes
-- if selected cell UI differs from the base class behavior, confirm the custom cell subclass overrides `isSelected` and performs the visual correction in `didSet`
-- if a selected cell background is not a pure color, confirm it uses `selectedBaseView` and no new selected-background update or refresh method was added
+- if selected cell UI differs from the base class behavior, confirm the custom cell subclass overrides `isSelected` only to update foreground title, icon, check-icon, text, or image state in `didSet`
+- confirm `isSelected` does not modify `baseView` or `selectedBaseView` backgrounds, borders, layer properties, corner radius, shadows, gradients, or other container effects
 - confirm Figma radius values `99` and `999` are implemented as half-height capsule radii, not copied as fixed Swift constants
 - confirm new page-specific image assets are under `GeneralOB/Assets.xcassets/GeneralOB/<page>/`
 - confirm downloaded Figma image resources are PNG `2x` and `3x` variants, not SVG
@@ -492,8 +492,8 @@ Keep the final response concise and include:
 - confirmation that bottom continue button state UI is handled by `nextBtnEnable.didSet`
 - confirmation that no `UIImageView.contentMode` assignment was added in page code
 - whether `GeneralOBPageItem` option data uses both raw `title` and localized `localizedTitle`
-- any custom `GeneralOBBaseCell` subclass details, including `baseView` additions, inherited control reuse, `selectedBaseView` for non-solid selected backgrounds, `checkIcon` selected and unselected cut images, `super.setupUI()`, and `snp.remakeConstraints`
-- whether selected cell UI needed a custom `isSelected.didSet` correction and what inherited controls it updates
+- any custom `GeneralOBBaseCell` subclass details, including `baseView` additions, inherited foreground-control reuse, `checkIcon` selected and unselected cut images, `super.setupUI()`, and `snp.remakeConstraints`
+- whether selected cell UI needed a custom `isSelected.didSet` correction, which foreground title/icon controls it updates, and confirmation that it does not change `baseView` or `selectedBaseView` container effects
 - any Figma `99` or `999` corner radius translations applied
 - the `GeneralOB/<page>/...` asset namespace used for exported PNG `2x` and `3x` images
 - whether the Figma frame height is greater than `844`; if so, how scrolling content and the fixed floating bottom button were implemented

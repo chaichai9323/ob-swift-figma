@@ -11,7 +11,7 @@ class GeneralOBBaseCell: UICollectionViewCell {
             text: nil,
             textColor: .init("#27242ECC"),
             font: .laien(.semiBold, fontSize: cx390(17)),
-            textAligment: .center
+            textAligment: .left
         )
         res.numberOfLines = 0
         return res
@@ -21,26 +21,35 @@ class GeneralOBBaseCell: UICollectionViewCell {
     lazy var checkIcon = {
         let res = UIImageView()
         res.highlightedImage = UIImage(
-            named: "check_select"
+            named: "GeneralOB/check_select"
         )
         res.image = UIImage(
-            named: "check_normal"
+            named: "GeneralOB/check_normal"
         )
         return res
     }()
     
-    lazy var selectedBaseView: UIImageView = {
-        let res = UIImageView(image: .init(named: "GeneralOB/cellSelectBg"))
+    lazy var selectedBaseView: OOGGradientBorder = {
+        let res = OOGGradientBorder(
+            colors: [
+                .init("#BECEFF"),
+                .init("#BDB6FF"),
+                .init("#E7B6FF")
+            ],
+            start: .init(x: 0, y: 0.5),
+            end: .init(x: 1, y: 0.5),
+            locations: [0, 1],
+            borderLineCorner: cx390(24),
+            borderLineWidth: cx390(1.5)
+        )
+        res.backgroundColor = .init("#F6F5FE")
         res.isHidden = true
-        res.cornerRadius = cx390(24)
-        res.clipsToBounds = true
         return res
     }()
     
     lazy var baseView: UIView = {
         let res = UIView()
         res.cornerRadius = cx390(24)
-        res.backgroundColor = .white
         res.addSubview(selectedBaseView)
         selectedBaseView.snp.makeConstraints { make in
             make.edges.equalToSuperview()
@@ -100,8 +109,12 @@ class GeneralOBBaseCell: UICollectionViewCell {
     
     override var isSelected: Bool {
         didSet {
-            baseView.backgroundColor = isSelected ? .clear : .init("#FEFDF9")
+            selectedBaseView.isHidden = !isSelected
+            baseView.layer.borderWidth = isSelected ? 0 : 1
+            baseView.layer.borderColor = UIColor("#F1F5F9").cgColor
+            baseView.backgroundColor = isSelected ? .clear : .init("#FFFFFF99")
             checkIcon.isHighlighted = isSelected
+            isChecked = isSelected
         }
     }
     

@@ -135,9 +135,9 @@
     "reason": "Project-specific tall-page scroll behavior with fixed floating bottom button."
   },
   {
-    "input": "ob-swift-figma 如果列表页面选中cell的背景样式不是纯颜色的情况，不要单独新加方法实现，使用基类的selectedBaseView这个属性实现",
+    "input": "ob-swift-figma 列表 cell 重写 isSelected 时只能更新标题、icon、checkIcon 等内容，不能修改 baseView 或 selectedBaseView 的背景、边框等效果。",
     "should_trigger": true,
-    "reason": "Project-specific GeneralOBBaseCell selectedBaseView rule for non-solid selected cell backgrounds."
+    "reason": "Project-specific isSelected boundary: selected-state corrections are limited to foreground title and icon content."
   },
   {
     "input": "ob-swift-figma 如果页面是列表页面或者有点击切换选择的功能，就在GeneralOBData里边添加对应页面的属性，var page: Int? 或者 var page: [Int]?，列表页面在page.vc属性使用vc页面的时候，添加选择状态、恢复状态、保存状态相关逻辑，包含多选的处理",
@@ -152,7 +152,7 @@
   {
     "input": "ob-swift-figma 如果页面是列表页面,当前页面的cell是否选中的UI展示跟基类不一致的，要在子类的cell中重写isSelected属性的didSet进行修正",
     "should_trigger": true,
-    "reason": "Project-specific selected cell UI correction through isSelected.didSet in the custom cell subclass."
+    "reason": "Project-specific selected cell UI correction through isSelected.didSet, limited to foreground title and icon content without container effects."
   },
   {
     "input": "ob-swift-figma 在开始执行任务前，先查找一下工程目录里边有没有GeneralOB文件夹，确保文件夹下有以下文件GeneralOBCollectionVC.swift GeneralOBPage.swift GeneralOBPage+Data.swift GeneralOBPage+VC.swift GeneralOBVC.swift DataModel和Pages文件夹,没有的话需要把GeneralOB文件夹复制一份放在工程里边",

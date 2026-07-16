@@ -3,6 +3,9 @@ import Onboarding
 
 enum GeneralOBPage: String, CaseIterable {
     case demo
+    case bodySignals
+    case readSignals
+    case mainGoal
 }
 
 extension GeneralOBPage {
@@ -18,8 +21,8 @@ extension GeneralOBPage {
     /// 是否能返回上个页面
     private var canBack: Bool {
         switch self {
-        case .demo:
-            return true
+        case .demo, .bodySignals, .readSignals:
+            return false
         default:
             return true
         }
@@ -28,7 +31,7 @@ extension GeneralOBPage {
     /// 是否隐藏进度条
     private var isHideProgress: Bool {
         switch self {
-        case .demo:
+        case .demo, .bodySignals, .readSignals:
             return true
         default:
             return false
@@ -45,6 +48,8 @@ extension GeneralOBPage {
         switch self {
         case .demo:
             return false
+        case .mainGoal:
+            return true
         default:
             return false
         }
