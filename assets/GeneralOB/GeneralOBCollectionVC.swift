@@ -5,19 +5,84 @@ import SnapKit
 
 class GeneralOBBaseCell: UICollectionViewCell {
     
+    class IconView: UIView {
+        
+        private lazy var icon = UIImageView()
+        
+        var iconEdge: UIEdgeInsets = .zero {
+            didSet {
+                icon.snp.remakeConstraints { make in
+                    make.edges.equalToSuperview().inset(iconEdge)
+                }
+            }
+        }
+        
+        override var contentMode: UIView.ContentMode {
+            didSet {
+                icon.contentMode = contentMode
+            }
+        }
+        
+        var iconColor: UIColor? {
+            didSet {
+                guard let c = iconColor else {
+                    return
+                }
+                icon.image = templateImg
+                icon.tintColor = c
+            }
+        }
+        
+        private var templateImg: UIImage?
+        
+        var image: UIImage? {
+            didSet {
+                templateImg = image?.withRenderingMode(.alwaysTemplate)
+                if iconColor == nil {
+                    icon.image = image
+                } else {
+                    icon.image = templateImg
+                }
+            }
+        }
+        
+        init(edge: UIEdgeInsets = .zero) {
+            self.iconEdge = edge
+            super.init(frame: .zero)
+            
+            addSubview(icon)
+            icon.snp.makeConstraints { make in
+                make.edges.equalToSuperview()
+                    .inset(iconEdge)
+            }
+        }
+
+        required init?(coder: NSCoder) {
+            fatalError("init(coder:) has not been implemented")
+        }
+        
+    }
+    
     lazy var titleLab: UILabel = {
         let res = UILabel(
             frame: .zero,
             text: nil,
-            textColor: .init("#27242ECC"),
-            font: .laien(.semiBold, fontSize: cx390(17)),
+            textColor: .init("#202C40"),
+            font: .laien(.semiBold, fontSize: cx390(16)),
             textAligment: .left
         )
         res.numberOfLines = 0
         return res
     }()
     
-    lazy var icon = UIImageView()
+    lazy var icon: IconView = {
+        let res = IconView(
+            edge: .init(top: cx390(12), left: cx390(12), bottom: cx390(12), right: cx390(12))
+        )
+        res.cornerRadius = cx390(16)
+        return res
+    }()
+    
     lazy var checkIcon = {
         let res = UIImageView()
         res.highlightedImage = UIImage(
@@ -58,21 +123,24 @@ class GeneralOBBaseCell: UICollectionViewCell {
             res.addSubview($0)
         }
         icon.snp.makeConstraints { make in
-            make.width.equalTo(cx390(90))
-            make.height.equalTo(cx390(84))
-            make.trailing.bottom.equalToSuperview()
+            make.width.equalTo(cx390(44))
+            make.height.equalTo(cx390(44))
+            make.centerY.equalToSuperview()
+            make.leading.equalToSuperview()
+                .offset(cx390(16))
         }
         checkIcon.snp.makeConstraints { make in
-            make.size.equalTo(32)
+            make.size.equalTo(24)
             make.centerY.equalToSuperview()
-            self.checkIconLeading = make.leading.equalToSuperview().constraint
-            self.checkIconLeading?.update(offset: -cx390(24))
+            self.checkIconLayout = make.trailing
+                .equalToSuperview().constraint
+            self.checkIconLayout?.update(inset: cx390(24))
         }
         titleLab.snp.makeConstraints { make in
             make.centerY.equalToSuperview()
-            make.leading.equalTo(checkIcon.snp.trailing)
+            make.leading.equalTo(icon.snp.trailing)
                 .offset(cx390(12))
-            make.trailing.equalTo(icon.snp.leading)
+            make.trailing.equalTo(checkIcon.snp.leading)
         }
         return res
     }()
@@ -87,12 +155,12 @@ class GeneralOBBaseCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
-    private var checkIconLeading: Constraint?
+    private var checkIconLayout: Constraint?
     
     var isChecked: Bool = false {
         didSet {
-            let offset: CGFloat = isChecked ? cx390(20) : -cx390(24)
-            self.checkIconLeading?.update(offset: offset)
+            let offset: CGFloat = isChecked ? cx390(24) : -cx390(24)
+            self.checkIconLayout?.update(inset: offset)
             checkIcon.isHidden = !isChecked
         }
     }
@@ -115,6 +183,8 @@ class GeneralOBBaseCell: UICollectionViewCell {
             baseView.backgroundColor = isSelected ? .clear : .init("#FFFFFF99")
             checkIcon.isHighlighted = isSelected
             isChecked = isSelected
+            icon.backgroundColor = isSelected ? .init("#EDEDFC") : .init("#F4F4F8")
+            icon.iconColor = isSelected ? .init("#6D70F1") : .init("#A9B2C2")
         }
     }
     
@@ -156,7 +226,11 @@ class GeneralOBCollectionVC: GeneralOBVC, UICollectionViewDelegateFlowLayout {
             guard let res = self?.cell(collectionView, path: indexPath) else {
                 return UICollectionViewCell()
             }
-            res.isChecked = self?.multipleSelect == true
+            let isMult = self?.multipleSelect == true
+            if !isMult {
+                res.checkIcon.image = nil
+            }
+            res.isChecked = isMult
             res.data = item
             res.isSelected = self?.selectedData.contains(item) == true
             return res
@@ -308,7 +382,7 @@ class GeneralOBCollectionVC: GeneralOBVC, UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         return CGSize(
             width: fullScreenWidth(),
-            height: cx390(84)
+            height: mainPage.cellHeight
         )
     }
     
@@ -328,9 +402,7 @@ class GeneralOBCollectionVC: GeneralOBVC, UICollectionViewDelegateFlowLayout {
         select(item: item, indexPath: indexPath)
         
         if !mainPage.cellHeightIsConsistent {
-            collectionView.performBatchUpdates {
-                collectionView.collectionViewLayout.invalidateLayout()
-            }
+            collectionView.collectionViewLayout.invalidateLayout()
         }
     }
     
@@ -346,10 +418,7 @@ class GeneralOBCollectionVC: GeneralOBVC, UICollectionViewDelegateFlowLayout {
         unselect(item: item, indexPath: indexPath)
         
         if !mainPage.cellHeightIsConsistent {
-            collectionView.performBatchUpdates {
-                collectionView.collectionViewLayout.invalidateLayout()
-            }
+            collectionView.collectionViewLayout.invalidateLayout()
         }
     }
 }
-

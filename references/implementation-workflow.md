@@ -88,9 +88,10 @@ Use `OB-Task-Doc/OBFigma.md` as the primary resumable queue, with legacy `Genera
 - if the announcement mentions reference images, reference documents, attachments, filenames, or relative paths, resolve those files from `OB-Task-Doc/` before checking any other location
 - treat multiple Figma URLs inside one page block as multiple UI display states of the same page, not as separate pages
 - implement all URLs in a block through one `GeneralOBPage` case and one `OB<Page>VC` page implementation, unless the user explicitly changes the queue structure
+- before implementation, apply every non-conflicting requirement from the opening Workflow and Project Fit Rules to the selected page block; queue mode does not waive those requirements
 - treat announcement lines as hard page-level implementation constraints that must be satisfied before the page can be marked `done`
 - treat any announcement-linked reference file found under `OB-Task-Doc/` as part of the hard page-level constraints
-- when an announcement conflicts with a generic implementation heuristic, follow the announcement for that page unless it breaks non-negotiable GeneralOB project boundaries; report the conflict and chosen implementation
+- when a page announcement conflicts with any opening Workflow or Project Fit implementation rule, follow the announcement for that page, retain all non-conflicting rules, and report the conflict plus the announcement-driven implementation
 - example: `不使用UICollectionView` means do not use `UICollectionView`, `GeneralOBCollectionVC`, collection cells, or collection reload/update APIs in that page, even if it looks option-style; use `GeneralOBVC` or another existing non-collection project pattern instead
 - preserve existing page text and Figma links; edit only status marker lines
 - treat a missing marker as `todo`
@@ -99,7 +100,9 @@ Use `OB-Task-Doc/OBFigma.md` as the primary resumable queue, with legacy `Genera
 - if the first not-done page is `failed` or `in_progress`, retry that same page before moving to later pages
 - before editing Swift or assets for the selected page, mark that page `in_progress` and increment or initialize `attempts`
 - after a page passes verification, mark it `done` with the commit hash
-- if a page fails, mark it `failed` with the attempt count and a short reason, then stop or retry that same page; do not continue to later pages while the current page is failed
+- after a successful commit, immediately select and implement the next not-done page in the same execution; do not pause or return a final response between completed pages
+- if a page fails, mark it `failed` with the attempt count and a short reason, then retry that same page in the same execution; do not continue to later pages or end the task while the current page is failed unless a genuine external blocker requires user input or an external state change
+- continue the queue loop until every page block is marked `done`, then provide the final response
 - keep status markers close to the page heading so humans can scan progress quickly
 
 ## 2. Figma Read
@@ -110,7 +113,7 @@ Gather only the design context needed for implementation:
 - frame size and constraints, including whether the frame height is greater than `844`
 - text content, typography, colors, opacity, shadows, radii, strokes, blur, and spacing
 - exported image assets and vector assets
-- image export requirements: PNG only, with `2x` and `3x` variants; do not use SVG for downloaded Figma resources in this project
+- image export requirements: choose the resource format and scale supported by Figma and the project
 - component variants and interactive states
 - motion data when the design uses animations
 
@@ -189,7 +192,7 @@ Map Figma layers to existing project primitives:
 - corner radius: copy ordinary Figma radii through local helpers; translate Figma radii `99` and `999` to half of the component height
 - images: existing asset catalog names or newly exported Figma assets placed under the `GeneralOB/<page>/...` namespaced asset path
 - image views: do not set `UIImageView.contentMode` in page code, page-local custom views, or cells
-- Figma image export: use PNG resources with `2x` and `3x` variants, not SVG
+- Figma image export: choose the resource format and scale supported by Figma and the project
 - collection updates: never call `UICollectionView` reload APIs; rely on `GeneralOBCollectionVC` diffable snapshots, `mainPage.pageData.items`, selection methods, and direct state updates
 - initial selection: `makeSelectItems`, `makeSelectIndexes`, and other `makeSelect*` helpers are external page-creation APIs for list pages and must not be called inside the page implementation; for list pages, use them only to restore saved `GeneralOBData` values or an explicitly specified Figma/announcement initial state, and otherwise call `vc.makeSelectIndexes([])`; for non-list tap-to-select pages, restore and save selection directly through `GeneralOBData` in the page's own state and tap handling code
 - bottom continue button state: use `override var nextBtnEnable: Bool { didSet { ... } }` for custom enabled or disabled appearance; do not create a separate update or refresh method for the bottom button state
@@ -204,6 +207,7 @@ For every new Figma page:
 - if running from `OBFigma.md`, update only the current page block's status marker before work; do not mark future pages
 - if the current `OBFigma.md` block contains multiple Figma URLs, read and implement them together as UI states of the same page
 - if the current `OBFigma.md` block contains `### announcement`, write down each announced condition and choose implementation details that satisfy it before editing Swift
+- before editing Swift, identify the opening Workflow and Project Fit Rules that apply to the selected page; preserve all non-conflicting rules and record any page-announcement conflict as an announcement override
 - if the current `OBFigma.md` block's announcement references images or documents, resolve them from `OB-Task-Doc/` first and read or inspect them before editing Swift
 - if the Figma page frame height is greater than `844`, plan the page as scrollable content plus a fixed bottom button layer before creating constraints
 - create or update the page implementation under `GeneralOB/Pages`
@@ -307,9 +311,9 @@ If the Figma page presents selectable options, cards, goals, interests, answers,
 - set the page's `multipleSelected` metadata from Figma selection behavior; multi-select lists must return `true`
 - set the page's `cellHeightIsConsistent` metadata from Figma cell height behavior; same-height lists return `true`, variable-height lists return `false`
 - never call `reloadData()`, `reloadItems(at:)`, `reloadSections(_:)`, or wrapper helpers that trigger `UICollectionView` reloads
-- create or reuse a cell class in `GeneralOB/Pages`; prefer subclassing `GeneralOBBaseCell` when it fits the design
-- override `registerCell` to register the page-specific cell
-- override `cell(_ c: UICollectionView, path: IndexPath) -> GeneralOBBaseCell` to dequeue and return the page-specific cell
+- first compare the Figma cell with `GeneralOBBaseCell`: when it is the inherited `icon` + `titleLab` + `checkIcon` layout and the title font and color match, use `GeneralOBCollectionVC`'s default `GeneralOBBaseCell` registration and dequeue flow. Do not create a cell subclass or override `registerCell` / `cell(_ c: UICollectionView, path: IndexPath)` for this matching case
+- create or reuse a cell class in `GeneralOB/Pages` only when Figma requires a real layout, title typography/color, icon treatment, or behavior difference from `GeneralOBBaseCell`
+- when a page-specific cell is required, override `registerCell` to register it and `cell(_ c: UICollectionView, path: IndexPath) -> GeneralOBBaseCell` to dequeue and return it
 - let `GeneralOBCollectionVC` feed data from `mainPage.pageData.items`, apply the diffable data source, handle selection, and call `clickNext`
 - add a persisted selection field in `GeneralOBData`; use `Int?` for single-select and `[Int]?` for multi-select
 - in the external `GeneralOBPage` `page.vc` construction path, restore and save list selection with `vc.makeSelectIndexes`; this is the allowed place to call `makeSelectIndexes`
@@ -318,10 +322,10 @@ If the Figma page presents selectable options, cards, goals, interests, answers,
 - do not call `makeSelectItems`, `makeSelectIndexes`, or any `makeSelect*` method inside the page; those helpers are only for the external VC initialization code that creates the page
 - represent choice content with `GeneralOBPageItem` fields such as `title`, `localizedTitle`, and `icon`
 - initialize choice content with both `title` and `localizedTitle`, for example `GeneralOBPageItem(title: "abc", localizedTitle: #Localized("abc"), icon: "...")`
-- when Figma shows an icon in a list item, export that icon as a PNG asset and set `GeneralOBPageItem.icon` to its namespaced asset name; do not use SF Symbols, `UIImage(systemName:)`, `systemName:`, drawn shapes, or runtime vectors as a substitute. When Figma provides different selected and unselected list icons, export and wire both state-specific assets.
+- when Figma shows an icon in a list item, export that icon in a Figma- and project-supported format and set `GeneralOBPageItem.icon` to its namespaced asset name; do not use SF Symbols, `UIImage(systemName:)`, `systemName:`, drawn shapes, or runtime vectors as a substitute. When Figma provides different selected and unselected list icons, export and wire both state-specific assets.
 - use `#Localized("...")` for `localizedTitle` and any visible cell or tag text
-- when subclassing `GeneralOBBaseCell`, add new controls to `baseView` rather than `contentView`; prefer inherited `titleLab`, `icon`, `checkIcon`, and `selectedBaseView` before adding replacement controls; implement `checkIcon` selected and unselected state display with cut image resources only, typically through `checkIcon.image` and `checkIcon.highlightedImage`; do not use background colors, borders, SF Symbols, drawn shapes, or runtime vector drawing for those states; call `super.setupUI()` from any override; use `snp.remakeConstraints` to reposition inherited controls when the Figma layout requires different constraints
-- if the selected UI shown in Figma does not match the base class selected-state behavior, override `isSelected` in the custom cell subclass and put the UI correction in `didSet`; keep this correction inside the cell and update only foreground content such as `titleLab`, `icon`, `checkIcon`, and other text or image state. Do not change `baseView` or `selectedBaseView` backgrounds, borders, layer properties, corner radius, shadows, gradients, or other selected-container visual effects
+- when subclassing `GeneralOBBaseCell`, add new controls to `baseView` rather than `contentView`; prefer inherited `titleLab`, `icon`, `checkIcon`, and `selectedBaseView` before adding replacement controls. Preserve the base class `checkIcon` images: do not assign `checkIcon.image` or `checkIcon.highlightedImage`, and do not add page-specific selected or unselected `checkIcon` assets; call `super.setupUI()` from any override; use `snp.remakeConstraints` to reposition inherited controls when the Figma layout requires different constraints
+- if the selected UI shown in Figma does not match the base class selected-state behavior, override `isSelected` in the custom cell subclass and put the UI correction in `didSet`; keep this correction inside the cell and update only foreground content such as `titleLab`, `icon`, and other text or image state. Do not assign `checkIcon.image` or `checkIcon.highlightedImage`, and do not change `baseView` or `selectedBaseView` backgrounds, borders, layer properties, corner radius, shadows, gradients, or other selected-container visual effects
 - do not implement Figma-specific selected cell backgrounds, borders, gradients, shadows, or other container effects in a custom cell's `isSelected`; preserve the base class container treatment
 - update `GeneralOBPage+Data.swift` so the matching enum case returns the full `GeneralOBPageData`
 - override sizing or spacing delegate methods only when the Figma layout differs from `GeneralOBCollectionVC` defaults
@@ -390,15 +394,14 @@ Figma often uses very large corner radius values such as `99` or `999` to mean a
 
 Use assets deliberately:
 
-- export bitmap images at the scale requested or implied by Figma
-- export downloaded Figma images as PNG files with `2x` and `3x` variants; do not use SVG for page assets or `checkIcon` state assets in this project
+- export Figma assets in a format and scale supported by both Figma and the project
 - preserve transparency when needed
 - put page-specific exported images under `GeneralOB/Assets.xcassets/GeneralOB/<page>/`, where `<page>` matches the `GeneralOBPage` case or project-approved page asset name
 - create or update `GeneralOB/Assets.xcassets/GeneralOB/Contents.json` with `"properties" : { "provides-namespace" : true }`
 - create or update `GeneralOB/Assets.xcassets/GeneralOB/<page>/Contents.json` with `"properties" : { "provides-namespace" : true }`
 - choose descriptive, project-consistent image set names inside the page namespace
 - treat Figma list-item icons as required page assets whenever the design displays them; keep their image set names descriptive and reference them through `GeneralOB/<page>/...`, never through a system-symbol fallback
-- for `GeneralOBBaseCell.checkIcon`, provide separate selected and unselected cut images in the asset catalog and wire them as image states instead of drawing the state in code
+- preserve the base class `GeneralOBBaseCell.checkIcon` image configuration; do not add or wire page-specific selected or unselected `checkIcon` assets
 - reference namespaced assets in Swift with the `GeneralOB/<page>/...` pattern, such as `UIImage(named: "GeneralOB/<page>/<assetName>")`; do not rely on unqualified root-level image names for page-specific exports
 - keep existing root-level assets only when they are already shared cross-page assets
 - do not replace existing assets with the same name unless the user asked for that exact replacement
@@ -415,6 +418,7 @@ Run the strongest reasonable checks:
 - if running from `OBFigma.md`, confirm only the current page block's status marker changed and it reflects `in_progress`, `failed`, or `done` accurately
 - if the current `OBFigma.md` block contains multiple Figma links, confirm all links were treated as UI states of the same page and no extra page enum/file/commit was created for a state link
 - if the current `OBFigma.md` block contains `### announcement`, confirm every announced condition is satisfied and include that proof in the final response before marking the page `done`
+- if a page announcement conflicts with an opening Workflow or Project Fit implementation rule, confirm the announcement was followed for that page, every non-conflicting opening rule was still satisfied, and the conflict is reported
 - if an announcement referenced images or documents, confirm `OB-Task-Doc/` was searched first, list the resolved paths, and explain how each reference was used
 - if an announcement says `不使用UICollectionView`, run a targeted check on the page-specific files to confirm no `UICollectionView` or `GeneralOBCollectionVC` usage was introduced
 - confirm all new page implementation files are under `GeneralOB/Pages`
@@ -423,7 +427,7 @@ Run the strongest reasonable checks:
 - if the page contains privacy policy or terms-of-use agreement text, confirm it is implemented with `GeneralLinkTextView.createLinkView`, localized `Privacy Policy`, localized `Terms of Use`, localized `By continuing you agree to the %@ and %@`, and clickable `QACheck.PRIVACY_URL` / `QACheck.TERM_OF_USE_URL` link attributes
 - confirm each new `GeneralOBPage` case has one matching page implementation and one `pageData` branch
 - confirm Figma chrome visibility is reflected in `GeneralOBPage`: absent back button -> `canBack = false`, absent progress bar -> `isHideProgress = true`, absent bottom continue button -> `isHideContinueBtn = true`
-- confirm option-style pages inherit from `GeneralOBCollectionVC`, override `registerCell` and `cell(_ c: UICollectionView, path: IndexPath)`, and do not hardcode option arrays in view code
+- confirm option-style pages inherit from `GeneralOBCollectionVC` and do not hardcode option arrays in view code. When the Figma cell is the inherited `icon` + `titleLab` + `checkIcon` layout with matching title font and color, confirm the page uses the default `GeneralOBBaseCell` flow with no cell subclass or `registerCell` / `cell(_ c: UICollectionView, path: IndexPath)` override; otherwise confirm the custom cell is required by a real Figma difference
 - when Figma displays list-item icons, confirm every icon uses the corresponding exported `GeneralOB/<page>/...` asset, state-specific Figma assets are used when shown, and changed list-page code has no `UIImage(systemName:)` or `systemName:` fallback
 - for list pages and non-list tap-to-select pages, confirm `GeneralOBData` has a page-specific `Int?` or `[Int]?` selected-index property
 - for list pages, confirm the external `page.vc` construction path calls `vc.makeSelectIndexes` to restore saved selected indexes and save later selected indexes back to `GeneralOBData`
@@ -435,17 +439,16 @@ Run the strongest reasonable checks:
 - confirm custom bottom continue button states are implemented only through `nextBtnEnable.didSet` and no new button-state update method was added
 - confirm no page implementation, page-local custom view, or cell assigns `UIImageView.contentMode`
 - confirm option data uses `GeneralOBPageItem(title: "abc", localizedTitle: #Localized("abc"), ...)`
-- confirm custom `GeneralOBBaseCell` subclasses add new controls to `baseView`, reuse `titleLab`, `icon`, `checkIcon`, and `selectedBaseView` where possible, implement `checkIcon` selected and unselected states with cut images only, call `super.setupUI()`, and use `snp.remakeConstraints` for inherited layout changes
-- if selected cell UI differs from the base class behavior, confirm the custom cell subclass overrides `isSelected` only to update foreground title, icon, check-icon, text, or image state in `didSet`
+- confirm custom `GeneralOBBaseCell` subclasses add new controls to `baseView`, reuse `titleLab`, `icon`, `checkIcon`, and `selectedBaseView` where possible, preserve inherited `checkIcon` images without assigning `checkIcon.image` or `checkIcon.highlightedImage`, call `super.setupUI()`, and use `snp.remakeConstraints` for inherited layout changes
+- if selected cell UI differs from the base class behavior, confirm the custom cell subclass overrides `isSelected` only to update foreground title, icon, text, or image state in `didSet`, without assigning `checkIcon.image` or `checkIcon.highlightedImage`
 - confirm `isSelected` does not modify `baseView` or `selectedBaseView` backgrounds, borders, layer properties, corner radius, shadows, gradients, or other container effects
 - confirm Figma radius values `99` and `999` are implemented as half-height capsule radii, not copied as fixed Swift constants
 - confirm new page-specific image assets are under `GeneralOB/Assets.xcassets/GeneralOB/<page>/`
-- confirm downloaded Figma image resources are PNG `2x` and `3x` variants, not SVG
+- confirm downloaded Figma image resources use a Figma- and project-supported format and scale
 - confirm that both the `GeneralOB` asset folder and page asset folder have `provides-namespace` enabled and Swift references use `GeneralOB/<page>/...` namespaced asset paths
 - confirm title and subtitle views render above images, collections, cards, decoration, gradients, and background art
 - if the Figma page frame height is greater than `844`, confirm the main content is in a scrollable region and the bottom continue button is fixed outside the scroll view, floating above it with sufficient bottom inset or padding
-- run `xcodebuild` for the workspace or project when available and practical
-- if build is blocked, run targeted static checks such as `xcodebuild -list`, `swiftc` only when suitable, or project file inspection
+- after each completed page, do not run `xcodebuild` for completion verification. Run targeted source and project-file checks instead, such as confirming changed Swift files, `GeneralOBPage` routing, asset references, target membership where files were added, and the absence of prohibited APIs
 - compare the implemented layout against the Figma screenshot at the relevant device size
 - check long text, small screens, iPad variants, safe-area edges, disabled states, and touch targets
 - verify missing assets do not render blank
@@ -462,19 +465,22 @@ When processing pages from `OBFigma.md`:
 - do not stage unrelated user changes or other unfinished page work
 - create one git commit per completed page, using a message that includes the page id or page name, for example `Implement OB 001 body reading begins`
 - after the commit succeeds, record the short commit hash in that page's status marker
-- continue with the next not-done page only after the current page has a successful commit
-- if verification, staging, or commit fails, mark the page `failed` with the attempt count and reason, keep the current page as the next retry target, and do not advance the queue
-- on retry, read the failed page's status marker, increment `attempts`, and re-run the same page task using the existing code and diff as context
+- immediately continue with the next not-done page in the same execution after the current page has a successful commit; do not pause or finalize the task between pages
+- if verification, staging, or commit fails, mark the page `failed` with the attempt count and reason, keep the current page as the retry target, and retry it in the same execution without advancing the queue
+- on retry, read the failed page's status marker, increment `attempts`, and re-run the same page task using the existing code and diff as context; stop only for a genuine external blocker that requires user input or an external state change
 
 ## 13. Final Response
+
+Write the final response only after every `OBFigma.md` page block is marked `done`, unless a genuine external blocker requires user input or an external state change.
 
 Keep the final response concise and include:
 
 - `OB-Task-Doc` preflight result, including whether the root folder already existed or was copied from the skill-bundled `assets/OB-Task-Doc` scaffold, and confirmation that it was not added to the Xcode project
 - `GeneralOB` structure preflight result, including whether the required folder already existed or was copied from the skill-bundled `assets/GeneralOB` scaffold before implementation, where it was copied in the app source directory, confirmation that it was not placed beside `.xcodeproj` at the top level, and how target membership was verified
 - `OBFigma.md` page id, page title, status transition, attempt count, and commit hash when queue mode is used
+- the source, project-file, visual, and interaction checks used for the completed page; do not include `xcodebuild` as single-page completion verification
 - every Figma URL in the processed `OBFigma.md` block and the UI state each one represents
-- any `### announcement` conditions in the processed block and how the implementation satisfies each condition
+- any `### announcement` conditions in the processed block, how the implementation satisfies each condition, and any opening-rule conflict overridden by the announcement
 - any announcement reference images or documents, with the resolved `OB-Task-Doc/...` paths searched or used first
 - changed files
 - `GeneralOBPage` case to page implementation mapping
@@ -492,10 +498,11 @@ Keep the final response concise and include:
 - confirmation that bottom continue button state UI is handled by `nextBtnEnable.didSet`
 - confirmation that no `UIImageView.contentMode` assignment was added in page code
 - whether `GeneralOBPageItem` option data uses both raw `title` and localized `localizedTitle`
-- any custom `GeneralOBBaseCell` subclass details, including `baseView` additions, inherited foreground-control reuse, `checkIcon` selected and unselected cut images, `super.setupUI()`, and `snp.remakeConstraints`
+- whether each option-list cell reused `GeneralOBBaseCell` directly or needed a custom cell, including the Figma difference that justified any subclass and registration/dequeue override
+- any custom `GeneralOBBaseCell` subclass details, including `baseView` additions, inherited foreground-control reuse, confirmation that it preserves inherited `checkIcon` images without reassignment, `super.setupUI()`, and `snp.remakeConstraints`
 - whether selected cell UI needed a custom `isSelected.didSet` correction, which foreground title/icon controls it updates, and confirmation that it does not change `baseView` or `selectedBaseView` container effects
 - any Figma `99` or `999` corner radius translations applied
-- the `GeneralOB/<page>/...` asset namespace used for exported PNG `2x` and `3x` images
+- the `GeneralOB/<page>/...` asset namespace used for exported Figma assets
 - whether the Figma frame height is greater than `844`; if so, how scrolling content and the fixed floating bottom button were implemented
 - how title and subtitle layer order was preserved
 - reused base classes, components, pods, helpers, and assets

@@ -75,9 +75,14 @@
     "reason": "Project-specific GeneralOBBaseCell subclassing and layout customization convention."
   },
   {
-    "input": "GeneralOBBaseCell 的子类 checkIcon 使用切图实现选中和非选中的状态展示，不要使用其他方式。",
+    "input": "ob-swift-figma 列表 cell 是 icon、title、checkIcon，标题字体颜色和 GeneralOBBaseCell 一致时，不要重写或新建 GeneralOBBaseCell 子类。",
     "should_trigger": true,
-    "reason": "Project-specific checkIcon selected and unselected image asset requirement."
+    "reason": "Project-specific direct-reuse rule for list cells that match GeneralOBBaseCell."
+  },
+  {
+    "input": "ob-swift-figma 列表页面的 cell 不要重新设置 checkIcon 的 image 或 highlightedImage，保留基类图片配置。",
+    "should_trigger": true,
+    "reason": "Project-specific checkIcon preservation rule for list cells."
   },
   {
     "input": "ob-swift-figma 遇到列表页面时，不要用系统符号，列表 icon 必须使用 Figma 设计中的图片资源。",
@@ -85,9 +90,9 @@
     "reason": "Project-specific list-item icon requirement: Figma-exported image assets replace all system-symbol fallbacks."
   },
   {
-    "input": "从 Figma 下载图片资源的时候不要使用 svg，使用 png 格式的 2x、3x 图片。",
+    "input": "从 Figma 导出资源时按 Figma 和当前工程支持的格式与倍率处理，不强制 PNG、SVG 或 2x、3x。",
     "should_trigger": true,
-    "reason": "Project-specific Figma asset export format and scale requirement."
+    "reason": "Project-specific Figma asset export compatibility rule without a fixed file-format or scale restriction."
   },
   {
     "input": "ob-swift-figma 实现页面的时候，UICollectionView 永远不要调用 reload 方法。",
@@ -95,14 +100,19 @@
     "reason": "Project-specific prohibition on UICollectionView reload calls in Figma page implementations."
   },
   {
+    "input": "ob-swift-figma 单个页面完成后不要使用 xcodebuild 验证，改为检查代码、工程集成、视觉和交互。",
+    "should_trigger": true,
+    "reason": "Project-specific single-page completion verification excludes xcodebuild and uses static, visual, and interaction checks."
+  },
+  {
     "input": "ob-swift-figma 选项列表页面，支持多选的时候 page.multipleSelected = true。列表的 cell 高度一致的时候 page.cellHeightIsConsistent=true 否则 page.cellHeightIsConsistent=false。",
     "should_trigger": true,
     "reason": "Project-specific option-list page metadata for multi-select behavior and cell-height consistency."
   },
   {
-    "input": "ob-swift-figma 执行任务的时候自动读取 OBFigma.md，根据内容完成一个页面以后使用 git 提交，然后继续下一个页面，并把页面完成状态做个标识，失败时自动重试当前页面。",
+    "input": "ob-swift-figma 执行任务时自动读取 OBFigma.md，一个页面完成并提交后立刻继续下一个页面，不能中断，直到所有页面完成；失败页面在同一执行中自动重试。",
     "should_trigger": true,
-    "reason": "Project-specific resumable OBFigma.md queue processing with per-page status, commit, and retry behavior."
+    "reason": "Project-specific continuous OBFigma.md queue execution through all pages with per-page status, commit, and same-run retry behavior."
   },
   {
     "input": "ob-swift-figma 实现页面的时候，底部按钮的不同状态通过重写基类的 nextBtnEnable 属性的 didSet 实现，不要新写方法。",
@@ -128,6 +138,11 @@
     "input": "ob-swift-figma OBFigma.md任务列表中的某一个页面，如果有announcement，需要满足声明的条件",
     "should_trigger": true,
     "reason": "Project-specific OBFigma announcement constraints must be honored."
+  },
+  {
+    "input": "ob-swift-figma 读取 OBFigma.md 的每个页面时先满足开头规则；若本页 announcement 与规则冲突，则本页以 announcement 为准。",
+    "should_trigger": true,
+    "reason": "Project-specific OBFigma page-rule precedence: all non-conflicting opening rules apply, while a page announcement overrides conflicts."
   },
   {
     "input": "ob-swift-figma 页面高度大于844的时候，页面内容要做成滑动的，底部按钮不跟随内容滑动始终悬浮在滑动内容的上层",
