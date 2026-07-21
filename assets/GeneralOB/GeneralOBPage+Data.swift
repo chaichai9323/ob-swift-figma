@@ -16,7 +16,7 @@ extension GeneralOBPage {
     /// 列表行高
     var cellHeight: CGFloat {
         switch self {
-        default: cx390(76)
+        default: return cx390(76)
         }
     }
     

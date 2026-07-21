@@ -24,7 +24,8 @@
 - Git staging includes unrelated user changes, unfinished later pages, or files outside the current page's implementation and status marker.
 - New page implementation files are placed outside `GeneralOB/Pages`, making the onboarding flow harder to maintain.
 - New page files or classes use generic names instead of the required `OB<Page>VC` pattern, making the `GeneralOBPage` mapping harder to scan.
-- Displayed copy is assigned as raw Swift strings instead of `#Localized("...")`, or the file uses `#Localized` without importing `OOGMacroKits`.
+- A new or modified Figma page Swift file omits any required page import: `UIKit`, `Components`, `OOGFontKit`, `OOGMacroKits`, or `SnapKit`.
+- Displayed copy is assigned as raw Swift strings instead of `#Localized("...")`.
 - Privacy policy and terms-of-use agreement text is implemented as a plain label, static attributed text, or otherwise non-clickable text instead of using `GeneralLinkTextView` with `QACheck.PRIVACY_URL` and `QACheck.TERM_OF_USE_URL`.
 - Figma values are copied as raw constants instead of using local scaling, typography, color, and asset helpers.
 - A Figma page frame taller than `844` is implemented as a fixed-height static layout, causing content to be clipped on device screens.
@@ -80,7 +81,8 @@
 - Confirm `git status --short` and `git diff` were inspected so unrelated user changes are not staged.
 - Confirm new page files live in `GeneralOB/Pages`.
 - Confirm new page file and class names use `OB<Page>VC`, such as `OBStartVC.swift` / `OBStartVC`.
-- Confirm visible strings are wrapped with `#Localized("...")` and files using the macro import `OOGMacroKits`.
+- Confirm every new or modified Figma page Swift file, including page-specific views and cells, imports `UIKit`, `Components`, `OOGFontKit`, `OOGMacroKits`, and `SnapKit` before declarations.
+- Confirm visible strings are wrapped with `#Localized("...")`.
 - If a page contains privacy policy and terms-of-use agreement copy, confirm it uses `GeneralLinkTextView.createLinkView`, localized privacy/terms strings, and `setlinkAttribute` for `QACheck.PRIVACY_URL` and `QACheck.TERM_OF_USE_URL`.
 - If the Figma page frame height is greater than `844`, confirm main content is scrollable.
 - If a page is taller than `844`, confirm the bottom continue button is outside the scroll view and remains fixed/floating above scrolling content.
@@ -114,4 +116,4 @@
 
 ## Delivery Standard
 
-The user should receive integrated project code, not a standalone tutorial. The final response should make it clear that the required root `OB-Task-Doc` and `GeneralOB` preflights passed; each `OBFigma.md` page, state, announcement, status transition, attempt count, and commit hash was handled; selection persistence, list metadata, navigation chrome, localization, responsive scrolling, and privacy links follow the required project patterns; list icons use Figma assets rather than system symbols; custom cells preserve inherited `checkIcon` images and limit `isSelected.didSet` to foreground content without container-effect changes; circular progress uses the required `GeneralOBCircleProgress` configuration; exported assets use Figma- and project-supported formats and scales, including SVG where supported; and the final complete-queue build result is reported.
+The user should receive integrated project code, not a standalone tutorial. The final response should make it clear that the required root `OB-Task-Doc` and `GeneralOB` preflights passed; each `OBFigma.md` page, state, announcement, status transition, attempt count, and commit hash was handled; every new or modified page Swift file includes `UIKit`, `Components`, `OOGFontKit`, `OOGMacroKits`, and `SnapKit`; selection persistence, list metadata, navigation chrome, localization, responsive scrolling, and privacy links follow the required project patterns; list icons use Figma assets rather than system symbols; custom cells preserve inherited `checkIcon` images and limit `isSelected.didSet` to foreground content without container-effect changes; circular progress uses the required `GeneralOBCircleProgress` configuration; exported assets use Figma- and project-supported formats and scales, including SVG where supported; and the final complete-queue build result is reported.

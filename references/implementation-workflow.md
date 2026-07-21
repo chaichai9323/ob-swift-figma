@@ -186,7 +186,7 @@ Map Figma layers to existing project primitives:
 - scroll behavior: if the Figma page frame height is greater than `844`, make the main content scrollable and keep the bottom continue button outside the scrollable content as a fixed floating layer
 - layer order: title and subtitle views must sit above all images, collection views, cards, decorations, gradients, and background art
 - typography: local font APIs such as `UIFont.figtree(...)` or existing text styles
-- localization: wrap all displayed copy in `#Localized("...")` and import `OOGMacroKits` in files that use the macro
+- page imports and localization: every new or modified Figma page Swift file, including page-specific views and cells, imports `UIKit`, `Components`, `OOGFontKit`, `OOGMacroKits`, and `SnapKit` before declarations; wrap all displayed copy in `#Localized("...")`
 - agreement links: when a page contains privacy policy and terms-of-use copy, use `GeneralLinkTextView` with `QACheck.PRIVACY_URL` and `QACheck.TERM_OF_USE_URL` so both links are tappable
 - spacing: local scale helpers such as `cx390(...)`; include iPad and small-device variants when the project does
 - colors: local token, asset, or hex initializer already used by the project
@@ -248,7 +248,15 @@ For UIKit pages:
 - subclass `GeneralOBCollectionVC` for option-style pages; it already inherits from `GeneralOBVC`, unless the current page announcement forbids `UICollectionView`
 - preserve required initializers and lifecycle patterns
 - define views as `lazy var` or local equivalents consistent with nearby code
-- add `import OOGMacroKits` at the top of any Swift file that renders localized text with `#Localized("...")`
+- every new or modified Figma page Swift file, including page-specific views and cells, must declare this complete import set before declarations, even if a module is not visibly referenced:
+
+```swift
+import UIKit
+import Components
+import OOGFontKit
+import OOGMacroKits
+import SnapKit
+```
 - set visible copy with the macro, for example `titleLab.text = #Localized("Title")`, `button.setTitle(#Localized("Continue"), for: .normal)`, and `GeneralOBPageItem(title: "Choice", localizedTitle: #Localized("Choice"), icon: "...")`
 - when a page includes the agreement text for `Privacy Policy` and `Terms of Use`, implement it with this project pattern so both links remain clickable; do not replace it with a plain `UILabel`, a static `NSAttributedString`, or non-clickable text:
 
@@ -309,7 +317,7 @@ For this repository's onboarding pages, require:
 - `GeneralOBPage` chrome flags to match the Figma screen's visible back button, progress bar, and bottom continue button
 - `GeneralOBPage.pageData` for page title and option data
 - `GeneralOBData` for persisted selected indexes on list pages and non-list tap-to-select pages
-- `#Localized("...")` plus `import OOGMacroKits` for all user-visible strings
+- the complete page import set: `UIKit`, `Components`, `OOGFontKit`, `OOGMacroKits`, and `SnapKit`; use `#Localized("...")` for all user-visible strings
 - scrollable content for Figma page frames taller than `844`, with the bottom continue button fixed outside the scroll view
 - `GeneralOBVC` inheritance for ordinary visual pages
 - `GeneralOBCollectionVC` inheritance for option-style visual pages unless the current page announcement forbids `UICollectionView`
@@ -438,7 +446,7 @@ Run the strongest reasonable checks:
 - if an announcement says `不使用UICollectionView`, run a targeted check on the page-specific files to confirm no `UICollectionView` or `GeneralOBCollectionVC` usage was introduced
 - confirm all new page implementation files are under `GeneralOB/Pages`
 - confirm new page file names and class names follow `OB<Page>VC`
-- confirm every new user-visible string uses `#Localized("...")` and files using the macro import `OOGMacroKits`
+- confirm every new or modified Figma page Swift file, including page-specific views and cells, imports `UIKit`, `Components`, `OOGFontKit`, `OOGMacroKits`, and `SnapKit` before declarations; confirm every new user-visible string uses `#Localized("...")`
 - if the page contains privacy policy or terms-of-use agreement text, confirm it is implemented with `GeneralLinkTextView.createLinkView`, localized `Privacy Policy`, localized `Terms of Use`, localized `By continuing you agree to the %@ and %@`, and clickable `QACheck.PRIVACY_URL` / `QACheck.TERM_OF_USE_URL` link attributes
 - confirm each new `GeneralOBPage` case has one matching page implementation and one `pageData` branch
 - confirm Figma chrome visibility is reflected in `GeneralOBPage`: absent back button -> `canBack = false`, absent progress bar -> `isHideProgress = true`, absent bottom continue button -> `isHideContinueBtn = true`
@@ -499,7 +507,7 @@ Keep the final response concise and include:
 - `GeneralOBPage` case to page implementation mapping
 - `GeneralOBPage` chrome flags changed for back button, progress bar, or bottom continue button
 - new page class and filename, confirming the `OB<Page>VC` naming rule
-- localization confirmation for visible strings and `OOGMacroKits` imports
+- confirmation that every new or modified Figma page Swift file imports `UIKit`, `Components`, `OOGFontKit`, `OOGMacroKits`, and `SnapKit`, plus localization confirmation for visible strings
 - privacy/terms agreement confirmation when present, including that `GeneralLinkTextView` is used and both `QACheck` URLs are clickable
 - whether the page is option-style, where its `pageData` is defined, and which `GeneralOBCollectionVC` hooks were overridden
 - the `GeneralOBData` property used for selection persistence and whether it is `Int?` or `[Int]?`
