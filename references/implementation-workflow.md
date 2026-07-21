@@ -95,14 +95,15 @@ Use `OB-Task-Doc/OBFigma.md` as the primary resumable queue, with legacy `Genera
 - example: `不使用UICollectionView` means do not use `UICollectionView`, `GeneralOBCollectionVC`, collection cells, or collection reload/update APIs in that page, even if it looks option-style; use `GeneralOBVC` or another existing non-collection project pattern instead
 - preserve existing page text and Figma links; edit only status marker lines
 - treat a missing marker as `todo`
-- supported markers are HTML comments inside the page block, such as `<!-- ob-status: todo -->`, `<!-- ob-status: in_progress; attempts: 1 -->`, `<!-- ob-status: failed; attempts: 1; reason: figma read failed -->`, and `<!-- ob-status: done; commit: <hash> -->`
-- choose the first page whose status is not `done`
-- if the first not-done page is `failed` or `in_progress`, retry that same page before moving to later pages
-- before editing Swift or assets for the selected page, mark that page `in_progress` and increment or initialize `attempts`
-- after a page passes verification, mark it `done` with the commit hash
-- after a successful commit, immediately select and implement the next not-done page in the same execution; do not pause or return a final response between completed pages
-- if a page fails, mark it `failed` with the attempt count and a short reason, then retry that same page in the same execution; do not continue to later pages or end the task while the current page is failed unless a genuine external blocker requires user input or an external state change
-- continue the queue loop until every page block is marked `done`, then provide the final response
+- supported markers are HTML comments inside the page block, such as `<!-- ob-status: todo -->`, `<!-- ob-status: in_progress; attempts: 1 -->`, `<!-- ob-status: failed; attempts: 1; reason: figma read failed -->`, `<!-- ob-status: blocked; reason: <external dependency> -->`, and `<!-- ob-status: done; commit: <hash> -->`
+- build a complete manifest of every page block before implementation, including id, title, URLs, announcement, references, and status
+- the parent agent dispatches exactly one isolated subagent for the next page not marked `done`; do not dispatch another page agent until the active page commit is integrated
+- before dispatch, the parent records `in_progress` and initializes or increments attempts only for the active page; subagents do not edit `OBFigma.md` markers in the parent worktree
+- after its page passes verification, each subagent stages only the assigned page's implementation, assets, and required project metadata in its isolated worktree and creates exactly one page-specific git commit
+- each subagent returns that commit hash, its verification evidence, announcement compliance, changed-file list, and shared-file integration conflicts
+- the parent integrates the active page commit, resolves conflicts in shared `GeneralOBPage`, page-data, data-model, asset, localization, and queue files, then records the accepted page as `done` before dispatching the next agent
+- retry a failed page before dispatching later pages; record a true external blocker as `blocked` and include it in the consolidated summary
+- after every page is integrated or explicitly blocked, run one workspace/project scheme `xcodebuild ... build` action, then provide one final response
 - keep status markers close to the page heading so humans can scan progress quickly
 
 ## 2. Figma Read
@@ -197,6 +198,20 @@ Map Figma layers to existing project primitives:
 - initial selection: `makeSelectItems`, `makeSelectIndexes`, and other `makeSelect*` helpers are external page-creation APIs for list pages and must not be called inside the page implementation; for list pages, use them only to restore saved `GeneralOBData` values or an explicitly specified Figma/announcement initial state, and otherwise call `vc.makeSelectIndexes([])`; for non-list tap-to-select pages, restore and save selection directly through `GeneralOBData` in the page's own state and tap handling code
 - bottom continue button state: use `override var nextBtnEnable: Bool { didSet { ... } }` for custom enabled or disabled appearance; do not create a separate update or refresh method for the bottom button state
 - controls: existing buttons, labels, `GeneralOBCollectionVC` and its collection cell hooks for option pages, progress bars, modals, toasts, and onboarding components
+- circular progress: when Figma shows a circular progress view, use `GeneralOBCircleProgress` rather than drawing a new circular layer or using another progress control. Configure it as follows unless the page announcement conflicts:
+
+```swift
+private lazy var progressView: GeneralOBCircleProgress = {
+    let res = GeneralOBCircleProgress()
+    res.lineWidth = cx390(14)
+    res.trackColor = .init("#0F172A0D")
+    res.gradientColors = [
+        .init("#9E95FC"),
+        .init("#5E7BFB")
+    ]
+    return res
+}()
+```
 
 Create new code only for genuinely new UI structure or behavior. Keep new helper APIs private or file-scoped unless there is clear local precedent for sharing. Do not bypass `GeneralOBVC` by creating a direct `OBBaseViewController` or plain `UIViewController` page.
 
@@ -415,7 +430,7 @@ Run the strongest reasonable checks:
 - confirm the `GeneralOB` structure preflight passed before Figma reading and implementation, that any folder copied from `assets/GeneralOB` was placed in the app source directory one level below the `.xcodeproj`-level directory rather than beside `.xcodeproj`, and that copied Swift files are members of the primary app target Compile Sources or equivalent generated target source list
 - if `GeneralOB` was copied from the skill scaffold, run a targeted project inspection such as searching `project.pbxproj` or the generator config for `GeneralOBCollectionVC.swift`, `GeneralOBPage.swift`, `GeneralOBPage+Data.swift`, `GeneralOBPage+VC.swift`, and `GeneralOBVC.swift`
 - inspect `git diff` for accidental unrelated churn
-- if running from `OBFigma.md`, confirm only the current page block's status marker changed and it reflects `in_progress`, `failed`, or `done` accurately
+- if running from `OBFigma.md`, confirm the parent alone updated page status markers after collecting subagent results and that every dispatched page accurately reflects `in_progress`, `failed`, `blocked`, or `done`
 - if the current `OBFigma.md` block contains multiple Figma links, confirm all links were treated as UI states of the same page and no extra page enum/file/commit was created for a state link
 - if the current `OBFigma.md` block contains `### announcement`, confirm every announced condition is satisfied and include that proof in the final response before marking the page `done`
 - if a page announcement conflicts with an opening Workflow or Project Fit implementation rule, confirm the announcement was followed for that page, every non-conflicting opening rule was still satisfied, and the conflict is reported
@@ -438,6 +453,7 @@ Run the strongest reasonable checks:
 - confirm no page implementation, cell, or page-local helper calls `makeSelectItems`, `makeSelectIndexes`, or any `makeSelect*` method
 - confirm custom bottom continue button states are implemented only through `nextBtnEnable.didSet` and no new button-state update method was added
 - confirm no page implementation, page-local custom view, or cell assigns `UIImageView.contentMode`
+- when Figma shows a circular progress view, confirm the page uses `GeneralOBCircleProgress` with `lineWidth = cx390(14)`, track color `#0F172A0D`, and gradient colors `#9E95FC` / `#5E7BFB`, unless the page announcement overrides that configuration
 - confirm option data uses `GeneralOBPageItem(title: "abc", localizedTitle: #Localized("abc"), ...)`
 - confirm custom `GeneralOBBaseCell` subclasses add new controls to `baseView`, reuse `titleLab`, `icon`, `checkIcon`, and `selectedBaseView` where possible, preserve inherited `checkIcon` images without assigning `checkIcon.image` or `checkIcon.highlightedImage`, call `super.setupUI()`, and use `snp.remakeConstraints` for inherited layout changes
 - if selected cell UI differs from the base class behavior, confirm the custom cell subclass overrides `isSelected` only to update foreground title, icon, text, or image state in `didSet`, without assigning `checkIcon.image` or `checkIcon.highlightedImage`
@@ -448,30 +464,27 @@ Run the strongest reasonable checks:
 - confirm that both the `GeneralOB` asset folder and page asset folder have `provides-namespace` enabled and Swift references use `GeneralOB/<page>/...` namespaced asset paths
 - confirm title and subtitle views render above images, collections, cards, decoration, gradients, and background art
 - if the Figma page frame height is greater than `844`, confirm the main content is in a scrollable region and the bottom continue button is fixed outside the scroll view, floating above it with sufficient bottom inset or padding
-- after each completed page, do not run `xcodebuild` for completion verification. Run targeted source and project-file checks instead, such as confirming changed Swift files, `GeneralOBPage` routing, asset references, target membership where files were added, and the absence of prohibited APIs
+- each subagent performs non-`xcodebuild` source, project-file, visual, and interaction checks for its assigned page; after all page commits are integrated, the parent performs cross-page checks and runs one workspace/project scheme `xcodebuild ... build` action for the complete queue
 - compare the implemented layout against the Figma screenshot at the relevant device size
 - check long text, small screens, iPad variants, safe-area edges, disabled states, and touch targets
 - verify missing assets do not render blank
 
 Never claim pixel-perfect implementation unless the rendered app was compared to the Figma screenshot.
 
-## 12. Per-Page Commit and Retry
+## 12. Parent Integration and Retry
 
 When processing pages from `OBFigma.md`:
 
-- after a page passes verification, mark the page `done` in `OBFigma.md`
-- inspect `git status --short` and `git diff` before staging
-- stage only files that belong to the completed page, related assets, project metadata required for those files, and the `OBFigma.md` status marker
-- do not stage unrelated user changes or other unfinished page work
-- create one git commit per completed page, using a message that includes the page id or page name, for example `Implement OB 001 body reading begins`
-- after the commit succeeds, record the short commit hash in that page's status marker
-- immediately continue with the next not-done page in the same execution after the current page has a successful commit; do not pause or finalize the task between pages
-- if verification, staging, or commit fails, mark the page `failed` with the attempt count and reason, keep the current page as the retry target, and retry it in the same execution without advancing the queue
-- on retry, read the failed page's status marker, increment `attempts`, and re-run the same page task using the existing code and diff as context; stop only for a genuine external blocker that requires user input or an external state change
+- the parent dispatches exactly one isolated subagent at a time and integrates its result before dispatching the next page agent
+- subagents do not stage, commit, or edit `OBFigma.md` on the parent branch; after each successful assigned page, they stage only that page's changes and create exactly one page-specific commit in their isolated worktree
+- the parent inspects `git status --short` and `git diff`, integrates the active page commit, and resolves shared-file conflicts before updating that page's `done` marker or dispatching the next agent
+- stage only accepted integration files; do not stage unrelated user changes
+- record each subagent page commit hash and the applicable integration commit hash in the accepted page's status marker
+- retry failed pages before dispatching later page agents; record genuine external blockers as `blocked`
 
 ## 13. Final Response
 
-Write the final response only after every `OBFigma.md` page block is marked `done`, unless a genuine external blocker requires user input or an external state change.
+Write one final response only after every page result is integrated or explicitly blocked and the single final workspace/project scheme `xcodebuild ... build` action has completed. Include each page's agent outcome, integration status, retry count, announcement compliance, verification evidence, shared-file conflict resolution, applicable integration commit hash, and final build result.
 
 Keep the final response concise and include:
 

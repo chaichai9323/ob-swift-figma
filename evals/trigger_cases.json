@@ -100,9 +100,9 @@
     "reason": "Project-specific prohibition on UICollectionView reload calls in Figma page implementations."
   },
   {
-    "input": "ob-swift-figma 单个页面完成后不要使用 xcodebuild 验证，改为检查代码、工程集成、视觉和交互。",
+    "input": "ob-swift-figma 单个页面完成后不运行 xcodebuild，等所有页面完成后只使用一次 workspace 或 project 的 scheme build 验证。",
     "should_trigger": true,
-    "reason": "Project-specific single-page completion verification excludes xcodebuild and uses static, visual, and interaction checks."
+    "reason": "Project-specific verification avoids per-page builds and requires one final scheme build after the full queue."
   },
   {
     "input": "ob-swift-figma 选项列表页面，支持多选的时候 page.multipleSelected = true。列表的 cell 高度一致的时候 page.cellHeightIsConsistent=true 否则 page.cellHeightIsConsistent=false。",
@@ -110,9 +110,9 @@
     "reason": "Project-specific option-list page metadata for multi-select behavior and cell-height consistency."
   },
   {
-    "input": "ob-swift-figma 执行任务时自动读取 OBFigma.md，一个页面完成并提交后立刻继续下一个页面，不能中断，直到所有页面完成；失败页面在同一执行中自动重试。",
+    "input": "ob-swift-figma 读取 OBFigma.md 后一次只能运行一个 Agent，每个 Agent 负责一个页面，完成后 git 提交一次，再执行下一个页面；全部页面完成后使用一次 xcodebuild 验证。",
     "should_trigger": true,
-    "reason": "Project-specific continuous OBFigma.md queue execution through all pages with per-page status, commit, and same-run retry behavior."
+    "reason": "Project-specific sequential single-agent queue with one page commit per agent and one final build."
   },
   {
     "input": "ob-swift-figma 实现页面的时候，底部按钮的不同状态通过重写基类的 nextBtnEnable 属性的 didSet 实现，不要新写方法。",
@@ -128,6 +128,11 @@
     "input": "ob-swift-figma 页面里边使用 UIImageView 控件的时候不要指定 contentMode。",
     "should_trigger": true,
     "reason": "Project-specific prohibition on assigning UIImageView contentMode in page implementations."
+  },
+  {
+    "input": "ob-swift-figma 页面中有圆形进度条时使用 GeneralOBCircleProgress，线宽 14，轨道色 #0F172A0D，渐变 #9E95FC 到 #5E7BFB。",
+    "should_trigger": true,
+    "reason": "Project-specific circular progress control and configuration requirement."
   },
   {
     "input": "ob-swift-figma OBFigma.md 任务列表中的某一个页面，可能会有多个 figma 页面链接，这是同一个页面的多种 UI 展示状态。",

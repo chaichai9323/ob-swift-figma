@@ -182,7 +182,10 @@ class GeneralOBBaseCell: UICollectionViewCell {
             baseView.layer.borderColor = UIColor("#F1F5F9").cgColor
             baseView.backgroundColor = isSelected ? .clear : .init("#FFFFFF99")
             checkIcon.isHighlighted = isSelected
-            isChecked = isSelected
+            // 单选显示checkicon
+            if checkIcon.image == nil {
+                isChecked = isSelected
+            }
             icon.backgroundColor = isSelected ? .init("#EDEDFC") : .init("#F4F4F8")
             icon.iconColor = isSelected ? .init("#6D70F1") : .init("#A9B2C2")
         }
@@ -194,7 +197,7 @@ class GeneralOBBaseCell: UICollectionViewCell {
         baseView.snp.makeConstraints { make in
             make.top.bottom.equalToSuperview()
             make.leading.trailing.equalToSuperview()
-                .inset(cx390(ipad: 124, iphone: 20))
+                .inset(cx390(ipad: 124, iphone: 28))
         }
     }
 }
@@ -316,7 +319,7 @@ class GeneralOBCollectionVC: GeneralOBVC, UICollectionViewDelegateFlowLayout {
         return true
     }()
     
-    private var selectedIndex: [IndexPath] {
+    var selectedIndex: [IndexPath] {
         var res = [IndexPath]()
         for (s, list) in dataList.enumerated() {
             for (i, item) in list.enumerated() {
