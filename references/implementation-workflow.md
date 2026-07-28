@@ -135,7 +135,7 @@ Before editing, inspect the local codebase:
 - `rg "SnapKit|snp\\.makeConstraints|NSLayoutConstraint|SwiftUI|View\\s*\\{" -n` for layout style
 - `rg "cx390|UIColor\\(\"#|figtree|cornerRadius|Assets|UIImage\\(named:" -n` for design utilities
 - `rg "Router|pushViewController|present\\(|container\\?\\.onNext|OnboardingPagesDataSource" -n` for navigation
-- `rg "GeneralOBCollectionVC|registerCell|cell\\(_ c: UICollectionView|pageData|GeneralOBPageData|GeneralOBPageItem|UICollectionView" -n` for page data and option-list patterns
+- `rg "GeneralOBCollectionVC|GeneralOBCollectionSectionVC|OBSleepVC|registerCell|cell\\(_ c: UICollectionView|pageData|GeneralOBPageData|GeneralOBPageItem|UICollectionView" -n` for page data and option-list patterns; for `CollectionSection`, inspect `GeneralOB/Pages/OBSleepVC.swift` before writing the cell hooks
 - `rg "GeneralOBData|makeSelectIndexes|makeSelectItems|var .*: Int\\?|var .*: \\[Int\\]\\?" -n` for persisted selection state, list-page external VC initialization patterns, and non-list page tap handlers
 - `rg "multipleSelected|cellHeightIsConsistent" -n` for option-list page metadata
 - `rg "UIImage\\s*\\(\\s*systemName:|systemName:" -n GeneralOB/Pages` to ensure changed list-page code does not substitute Figma list-item icons with system symbols
@@ -169,7 +169,7 @@ Record each resolved reference path and how it influenced layout, copy, assets, 
 
 Map Figma layers to existing project primitives:
 
-- screen container: `GeneralOBVC` for ordinary pages; `GeneralOBCollectionVC` for option-style pages unless the current page announcement forbids `UICollectionView` or otherwise requires a non-collection implementation
+- screen container: `GeneralOBVC` for ordinary pages; `GeneralOBCollectionVC` for option-style pages unless the current page announcement forbids `UICollectionView` or otherwise requires a non-collection implementation; `GeneralOBCollectionSectionVC` when the page declaration contains `CollectionSection`, with a page override of `sectionDetail(sec:)` for expanded information
 - file location: page implementations under `GeneralOB/Pages`; shared data model additions under `GeneralOB/Pages/Model`
 - file and class naming: `OB<Page>VC.swift` and `OB<Page>VC`, derived from the `GeneralOBPage` case in PascalCase
 - page identity: exactly one `GeneralOBPage` case for each implemented Figma page
@@ -246,6 +246,7 @@ For UIKit pages:
 
 - subclass `GeneralOBVC` for ordinary new Figma pages in this project
 - subclass `GeneralOBCollectionVC` for option-style pages; it already inherits from `GeneralOBVC`, unless the current page announcement forbids `UICollectionView`
+- when the page declaration contains `CollectionSection`, subclass `GeneralOBCollectionSectionVC` instead of `GeneralOBCollectionVC`; this specialized class retains the shared collection behavior while rendering option data as sections
 - preserve required initializers and lifecycle patterns
 - define views as `lazy var` or local equivalents consistent with nearby code
 - every new or modified Figma page Swift file, including page-specific views and cells, must declare this complete import set before declarations, even if a module is not visibly referenced:
@@ -330,13 +331,54 @@ For this repository's onboarding pages, require:
 
 If the Figma page presents selectable options, cards, goals, interests, answers, categories, or any repeated choice list:
 
-- inherit from `GeneralOBCollectionVC`; do not create a fresh `UICollectionView`, diffable data source, delegate stack, selection pipeline, or initial data loading flow
+- when the page declaration contains `CollectionSection`, inherit from `GeneralOBCollectionSectionVC` and implement the two cell hooks with the current project's `GeneralOB/Pages/OBSleepVC.swift` pattern. Do this even when the cell otherwise resembles `GeneralOBBaseCell`; this rule takes precedence over the ordinary default-cell reuse rule:
+
+```swift
+override func registerCell() {
+    super.registerCell()
+    collection.register(cellWithClass: OB<Page>Cell.self)
+}
+
+override func cell(
+    _ c: UICollectionView,
+    path: IndexPath
+) -> GeneralOBBaseCell {
+    if path.item > 0 {
+        return c.dequeueReusableCell(
+            withClass: OB<Page>Cell.self,
+            for: path
+        )
+    }
+    return super.cell(c, path: path)
+}
+```
+
+  Do not omit `super.registerCell()`, replace the `path.item > 0` condition, or bypass the `super.cell(c, path: path)` fallback unless the page announcement explicitly overrides this rule.
+
+  Also override `sectionDetail(sec: Int) -> GeneralOBPageItem` to return the selected section's real expanded information. Preserve the selected item's applicable title, localized title, and icon, and supply the Figma-defined localized expansion text; do not return the base placeholder or `.init(icon: "")`:
+
+```swift
+override func sectionDetail(
+    sec: Int
+) -> GeneralOBPageItem {
+    guard let item = dataList[safe: sec]?.first else {
+        return .init(icon: "")
+    }
+    return .init(
+        title: item.title,
+        localizedTitle: item.localizedTitle,
+        localizedSubtitle: #Localized("<Figma expansion text>"),
+        icon: item.icon
+    )
+}
+```
+- otherwise inherit from `GeneralOBCollectionVC`; do not create a fresh `UICollectionView`, diffable data source, delegate stack, selection pipeline, or initial data loading flow
 - set the page's `multipleSelected` metadata from Figma selection behavior; multi-select lists must return `true`
 - set the page's `cellHeightIsConsistent` metadata from Figma cell height behavior; same-height lists return `true`, variable-height lists return `false`
 - never call `reloadData()`, `reloadItems(at:)`, `reloadSections(_:)`, or wrapper helpers that trigger `UICollectionView` reloads
-- first compare the Figma cell with `GeneralOBBaseCell`: when it is the inherited `icon` + `titleLab` + `checkIcon` layout and the title font and color match, use `GeneralOBCollectionVC`'s default `GeneralOBBaseCell` registration and dequeue flow. Do not create a cell subclass or override `registerCell` / `cell(_ c: UICollectionView, path: IndexPath)` for this matching case
+- for pages without `CollectionSection`, first compare the Figma cell with `GeneralOBBaseCell`: when it is the inherited `icon` + `titleLab` + `checkIcon` layout and the title font and color match, use `GeneralOBCollectionVC`'s default `GeneralOBBaseCell` registration and dequeue flow. Do not create a cell subclass or override `registerCell` / `cell(_ c: UICollectionView, path: IndexPath)` for this matching case
 - create or reuse a cell class in `GeneralOB/Pages` only when Figma requires a real layout, title typography/color, icon treatment, or behavior difference from `GeneralOBBaseCell`
-- when a page-specific cell is required, override `registerCell` to register it and `cell(_ c: UICollectionView, path: IndexPath) -> GeneralOBBaseCell` to dequeue and return it
+- when a page-specific cell is required, override `registerCell()` to register it and `cell(_ c: UICollectionView, path: IndexPath) -> GeneralOBBaseCell` to dequeue and return it; for `CollectionSection` pages, use the `OBSleepVC` call order and fallback exactly
 - let `GeneralOBCollectionVC` feed data from `mainPage.pageData.items`, apply the diffable data source, handle selection, and call `clickNext`
 - add a persisted selection field in `GeneralOBData`; use `Int?` for single-select and `[Int]?` for multi-select
 - in the external `GeneralOBPage` `page.vc` construction path, restore and save list selection with `vc.makeSelectIndexes`; this is the allowed place to call `makeSelectIndexes`
@@ -450,7 +492,7 @@ Run the strongest reasonable checks:
 - if the page contains privacy policy or terms-of-use agreement text, confirm it is implemented with `GeneralLinkTextView.createLinkView`, localized `Privacy Policy`, localized `Terms of Use`, localized `By continuing you agree to the %@ and %@`, and clickable `QACheck.PRIVACY_URL` / `QACheck.TERM_OF_USE_URL` link attributes
 - confirm each new `GeneralOBPage` case has one matching page implementation and one `pageData` branch
 - confirm Figma chrome visibility is reflected in `GeneralOBPage`: absent back button -> `canBack = false`, absent progress bar -> `isHideProgress = true`, absent bottom continue button -> `isHideContinueBtn = true`
-- confirm option-style pages inherit from `GeneralOBCollectionVC` and do not hardcode option arrays in view code. When the Figma cell is the inherited `icon` + `titleLab` + `checkIcon` layout with matching title font and color, confirm the page uses the default `GeneralOBBaseCell` flow with no cell subclass or `registerCell` / `cell(_ c: UICollectionView, path: IndexPath)` override; otherwise confirm the custom cell is required by a real Figma difference
+- confirm option-style pages inherit from `GeneralOBCollectionVC` and do not hardcode option arrays in view code. When the page declaration contains `CollectionSection`, confirm it inherits from `GeneralOBCollectionSectionVC` and matches `OBSleepVC`: `registerCell()` calls `super.registerCell()` before registering the page-specific cell; `cell(_:path:)` dequeues it only for `path.item > 0` and otherwise returns `super.cell(c, path: path)`; `sectionDetail(sec:)` is overridden to return the selected section's localized Figma expansion data, rather than the base placeholder. For pages without `CollectionSection`, when the Figma cell is the inherited `icon` + `titleLab` + `checkIcon` layout with matching title font and color, confirm the page uses the default `GeneralOBBaseCell` flow with no cell subclass or `registerCell` / `cell(_ c: UICollectionView, path: IndexPath)` override; otherwise confirm the custom cell is required by a real Figma difference
 - when Figma displays list-item icons, confirm every icon uses the corresponding exported `GeneralOB/<page>/...` asset, state-specific Figma assets are used when shown, and changed list-page code has no `UIImage(systemName:)` or `systemName:` fallback
 - for list pages and non-list tap-to-select pages, confirm `GeneralOBData` has a page-specific `Int?` or `[Int]?` selected-index property
 - for list pages, confirm the external `page.vc` construction path calls `vc.makeSelectIndexes` to restore saved selected indexes and save later selected indexes back to `GeneralOBData`
@@ -509,7 +551,7 @@ Keep the final response concise and include:
 - new page class and filename, confirming the `OB<Page>VC` naming rule
 - confirmation that every new or modified Figma page Swift file imports `UIKit`, `Components`, `OOGFontKit`, `OOGMacroKits`, and `SnapKit`, plus localization confirmation for visible strings
 - privacy/terms agreement confirmation when present, including that `GeneralLinkTextView` is used and both `QACheck` URLs are clickable
-- whether the page is option-style, where its `pageData` is defined, and which `GeneralOBCollectionVC` hooks were overridden
+- whether the page is option-style or `CollectionSection`, where its `pageData` is defined, and which `GeneralOBCollectionVC` or `GeneralOBCollectionSectionVC` hooks were overridden; for `CollectionSection`, explicitly report `sectionDetail(sec:)` and the returned expanded information, plus the `OBSleepVC`-matching `registerCell()` and `cell(_:path:)` behavior
 - the `GeneralOBData` property used for selection persistence and whether it is `Int?` or `[Int]?`
 - for list pages, where `page.vc` restores and saves selection through `vc.makeSelectIndexes`, and whether it calls `vc.makeSelectIndexes([])` when there is no saved value and no explicit initial-selection requirement
 - for non-list tap-to-select pages, where the page restores, toggles, saves, and re-renders selection through `GeneralOBData`

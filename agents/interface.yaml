@@ -1,7 +1,7 @@
 interface:
   display_name: "OB Swift Figma"
   short_description: "Implement Figma screens in Swift using existing iOS project architecture"
-  default_prompt: "Use $ob-swift-figma to implement this Figma screen in the current Swift iOS project, reusing existing components, base classes, pods, and helpers."
+  default_prompt: "Use $ob-swift-figma to implement this Figma screen in the current Swift iOS project, reusing existing components, base classes, pods, and helpers. For a CollectionSection declaration, use GeneralOBCollectionSectionVC; follow OBSleepVC for registerCell() plus cell(_:path:), and override sectionDetail(sec:) to return the selected section's Figma expansion information."
 compatibility:
   canonical_format: "agent-skills"
   adapter_targets:

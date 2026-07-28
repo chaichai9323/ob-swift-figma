@@ -30,6 +30,21 @@
     "reason": "Project-specific option-page base class and override hook constraints."
   },
   {
+    "input": "ob-swift-figma 页面声明中有 CollectionSection 时，使用 GeneralOBCollectionSectionVC，并重写 registerCell 和 cell(_:path:)。",
+    "should_trigger": true,
+    "reason": "Project-specific CollectionSection base class and mandatory custom cell hook constraints."
+  },
+  {
+    "input": "CollectionSection 页面重写 registerCell 和 cell(_:path:) 时，沿用当前工程 OBSleepVC 的 super.registerCell、path.item > 0 和 super.cell 回退写法。",
+    "should_trigger": true,
+    "reason": "Project-specific CollectionSection cell-hook implementation pattern from OBSleepVC."
+  },
+  {
+    "input": "CollectionSection 页面还要重写 sectionDetail(sec:) 来返回当前 section 展开后的本地化信息。",
+    "should_trigger": true,
+    "reason": "Project-specific CollectionSection expanded-detail data hook requirement."
+  },
+  {
     "input": "实现 Figma 页面时，如果组件圆角是 99 或 999，要设置成组件高度的一半。",
     "should_trigger": true,
     "reason": "Project-specific Figma radius translation rule for capsule components."

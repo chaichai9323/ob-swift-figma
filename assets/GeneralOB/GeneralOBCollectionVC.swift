@@ -170,7 +170,16 @@ class GeneralOBBaseCell: UICollectionViewCell {
             guard let data else {
                 return
             }
-            icon.image = UIImage(named: data.icon)
+            let hasIcon = !data.icon.isEmpty
+            icon.isHidden = !hasIcon
+            icon.image = hasIcon ? UIImage(named: data.icon) : nil
+            titleLab.snp.remakeConstraints { make in
+                make.centerY.equalToSuperview()
+                make.leading.equalTo(
+                    hasIcon ? icon.snp.trailing : baseView.snp.leading
+                ).offset(cx390(hasIcon ? 12 : 24))
+                make.trailing.equalTo(checkIcon.snp.leading)
+            }
             titleLab.text = data.localizedTitle
         }
     }
@@ -422,6 +431,105 @@ class GeneralOBCollectionVC: GeneralOBVC, UICollectionViewDelegateFlowLayout {
         
         if !mainPage.cellHeightIsConsistent {
             collectionView.collectionViewLayout.invalidateLayout()
+        }
+    }
+}
+
+class GeneralOBCollectionSectionVC: GeneralOBCollectionVC {
+
+    override var nextBtnEnable: Bool {
+        didSet {
+            nextButton.backgroundColor = nextBtnEnable
+                ? UIColor("#172235")
+                : UIColor("#1722351A")
+            nextButton.isEnabled = nextBtnEnable
+        }
+    }
+
+    override var dataList: [[GeneralOBPageItem]] {
+        return mainPage.pageData.items
+            .map { s in
+                return [s]
+            }
+    }
+    
+    func sectionDetail(
+        sec: Int
+    ) -> GeneralOBPageItem {
+        guard let item = dataList[safe: sec]?.first else {
+            return .init(icon: "")
+        }
+        return .init(
+            title: item.title,
+            localizedTitle: item.localizedTitle,
+            localizedSubtitle: "detail-\(sec)",
+            icon: item.icon
+        )
+    }
+
+    override func loadInitData() {
+        guard let section = selectedIndex.first?.section else {
+            super.loadInitData()
+            return
+        }
+        var shot = srcSnapshot
+        shot.appendItems([
+            sectionDetail(sec: section)
+        ], toSection: section)
+        dataSource.apply(shot, animatingDifferences: false) {
+            self.initialAppear()
+        }
+    }
+    
+    override func cell(
+        _ c: UICollectionView,
+        path: IndexPath
+    ) -> GeneralOBBaseCell {
+        if path.item > 0 {
+            return c
+                .dequeueReusableCell(withClass: GeneralOBBaseCell.self, for: path)
+        }
+        return c
+            .dequeueReusableCell(withClass: GeneralOBBaseCell.self, for: path)
+    }
+    
+    override func select(item: GeneralOBPageItem, indexPath: IndexPath) {
+       
+        let section = indexPath.section
+        var shot = srcSnapshot
+        shot.appendItems([
+            sectionDetail(sec: section)
+        ], toSection: section)
+        dataSource.apply(shot)
+        selectedData = [item]
+    }
+    
+    override func collectionView(
+        _ collectionView: UICollectionView,
+        layout collectionViewLayout: UICollectionViewLayout,
+        minimumLineSpacingForSectionAt section: Int
+    ) -> CGFloat {
+        cx390(16)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+        guard section > 0 else {
+            return .zero
+        }
+        return .init(top: cx390(16), left: 0, bottom: 0, right: 0)
+    }
+    
+    override func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        if indexPath.item == 0 {
+            return CGSize(
+                width: fullScreenWidth(),
+                height: mainPage.cellHeight
+            )
+        } else {
+            return CGSize(
+                width: fullScreenWidth(),
+                height: cx390(84)
+            )
         }
     }
 }
