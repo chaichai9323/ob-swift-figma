@@ -7,6 +7,7 @@ Use this checklist when turning Figma into Swift code inside an existing iOS pro
 Confirm the concrete design target:
 
 - `OB-Task-Doc/OBFigma.md` page queue, when present; legacy `GeneralOB/OBFigma.md` is a fallback only
+- optional shared BaseCell specification headed `# BaseCell` or `## BaseCell` in `OBFigma.md`, including all Figma links that show its layout, selected state, or unselected state
 - Figma URL or node id; in `OBFigma.md`, one page block may contain multiple Figma URLs
 - `### announcement` content inside the selected `OBFigma.md` page block, when present
 - reference images, reference documents, attachments, filenames, or relative paths mentioned by `### announcement`, resolved from `OB-Task-Doc/` first
@@ -19,7 +20,7 @@ Confirm the concrete design target:
 
 If the Figma URL lacks a node id and the target is ambiguous, ask for the node-specific URL before implementing.
 
-When `OB-Task-Doc/OBFigma.md` exists, read it automatically before asking for page input. If it is absent, fall back to legacy `GeneralOB/OBFigma.md`. Treat each `## <id>` section as one page task with optional title text, one or more Figma URLs, optional `### announcement` constraints, and `ob-status` marker.
+When `OB-Task-Doc/OBFigma.md` exists, read it automatically before asking for page input. If it is absent, fall back to legacy `GeneralOB/OBFigma.md`. Treat a section whose normalized heading is `BaseCell`, including `# BaseCell` or `## BaseCell`, as a shared BaseCell specification rather than a page, and treat each numeric or project-approved `## <id>` section as one page task with optional title text, one or more Figma URLs, optional `### announcement` constraints, and `ob-status` marker.
 
 ## 1A. OB-Task-Doc Preflight
 
@@ -78,15 +79,22 @@ If `GeneralOB` is missing or any required file/folder is absent:
 
 Only continue to `OBFigma.md` queue parsing or Figma implementation after this preflight passes.
 
-## 1C. OBFigma Queue Mode
+## 1C. OBFigma Queue and BaseCell Mode
 
 Use `OB-Task-Doc/OBFigma.md` as the primary resumable queue, with legacy `GeneralOB/OBFigma.md` as a fallback when the task-doc queue file is absent:
 
+- when a heading normalized by trimming Markdown heading markers and whitespace equals `BaseCell`, parse it separately from the page manifest; support both `# BaseCell` and `## BaseCell`, and end its content at the first subsequent `## <id>` page block or next heading of the same or higher level
+- treat every Figma link in the BaseCell section as a selected, unselected, or layout variant of the same shared `GeneralOBBaseCell`; read all variants before editing
+- process the BaseCell section in the parent worktree before dispatching any page subagent because it owns a shared foundation class
+- locate the existing file that declares `GeneralOBBaseCell`, normally `GeneralOB/GeneralOBCollectionVC.swift`, and modify only the `GeneralOBBaseCell` declaration; do not create a parallel base cell, page-specific cell, or wrapper
+- Do not add or modify `GeneralOBPage`, `GeneralOBPage.pageData`, `GeneralOBPage.vc`, `GeneralOBData`, any `OB<Page>VC`, anything under `GeneralOB/Pages`, page-specific assets, or Xcode routing for `# BaseCell`
+- implement the unselected container layout and appearance in `baseView`; implement every selected container effect in `selectedBaseView`, including its background, border, gradient, shadow, and corner treatment; keep `isSelected` responsible only for showing or hiding these shared states and updating shared foreground content
+- do not give `# BaseCell` or `## BaseCell` a page id, `ob-status` marker, page attempt count, page agent, `GeneralOBPage` mapping, or page-specific commit; report it separately as a shared BaseCell update
 - parse page blocks in document order from headings such as `## 001`, `## 002`, and so on
 - collect every Figma URL inside the same page block
 - collect any `### announcement` section inside the same page block; its text applies only to that page block
 - if the announcement mentions reference images, reference documents, attachments, filenames, or relative paths, resolve those files from `OB-Task-Doc/` before checking any other location
-- treat multiple Figma URLs inside one page block as multiple UI display states of the same page, not as separate pages
+- treat multiple Figma URLs inside one `## <id>` page block as multiple UI display states of the same page, not as separate pages; this page rule does not apply to the `# BaseCell` variants above
 - implement all URLs in a block through one `GeneralOBPage` case and one `OB<Page>VC` page implementation, unless the user explicitly changes the queue structure
 - before implementation, apply every non-conflicting requirement from the opening Workflow and Project Fit Rules to the selected page block; queue mode does not waive those requirements
 - treat announcement lines as hard page-level implementation constraints that must be satisfied before the page can be marked `done`
@@ -480,6 +488,9 @@ Run the strongest reasonable checks:
 - confirm the `GeneralOB` structure preflight passed before Figma reading and implementation, that any folder copied from `assets/GeneralOB` was placed in the app source directory one level below the `.xcodeproj`-level directory rather than beside `.xcodeproj`, and that copied Swift files are members of the primary app target Compile Sources or equivalent generated target source list
 - if `GeneralOB` was copied from the skill scaffold, run a targeted project inspection such as searching `project.pbxproj` or the generator config for `GeneralOBCollectionVC.swift`, `GeneralOBPage.swift`, `GeneralOBPage+Data.swift`, `GeneralOBPage+VC.swift`, and `GeneralOBVC.swift`
 - inspect `git diff` for accidental unrelated churn
+- when `# BaseCell` exists, confirm it was processed before page dispatch, was excluded from the page manifest and page status markers, and changed only the existing `GeneralOBBaseCell` declaration
+- for `# BaseCell`, confirm the Figma links were treated as shared selected/unselected variants, the unselected container treatment is implemented in `baseView`, and every selected background, border, gradient, shadow, and corner treatment is implemented in `selectedBaseView`
+- for `# BaseCell`, confirm no `GeneralOBPage`, `pageData`, `page.vc`, `GeneralOBData`, `OB<Page>VC`, `GeneralOB/Pages` file, page-specific cell, page asset, or Xcode routing change was introduced
 - if running from `OBFigma.md`, confirm the parent alone updated page status markers after collecting subagent results and that every dispatched page accurately reflects `in_progress`, `failed`, `blocked`, or `done`
 - if the current `OBFigma.md` block contains multiple Figma links, confirm all links were treated as UI states of the same page and no extra page enum/file/commit was created for a state link
 - if the current `OBFigma.md` block contains `### announcement`, confirm every announced condition is satisfied and include that proof in the final response before marking the page `done`
@@ -506,8 +517,8 @@ Run the strongest reasonable checks:
 - when Figma shows a circular progress view, confirm the page uses `GeneralOBCircleProgress` with `lineWidth = cx390(14)`, track color `#0F172A0D`, and gradient colors `#9E95FC` / `#5E7BFB`, unless the page announcement overrides that configuration
 - confirm option data uses `GeneralOBPageItem(title: "abc", localizedTitle: #Localized("abc"), ...)`
 - confirm custom `GeneralOBBaseCell` subclasses add new controls to `baseView`, reuse `titleLab`, `icon`, `checkIcon`, and `selectedBaseView` where possible, preserve inherited `checkIcon` images without assigning `checkIcon.image` or `checkIcon.highlightedImage`, call `super.setupUI()`, and use `snp.remakeConstraints` for inherited layout changes
-- if selected cell UI differs from the base class behavior, confirm the custom cell subclass overrides `isSelected` only to update foreground title, icon, text, or image state in `didSet`, without assigning `checkIcon.image` or `checkIcon.highlightedImage`
-- confirm `isSelected` does not modify `baseView` or `selectedBaseView` backgrounds, borders, layer properties, corner radius, shadows, gradients, or other container effects
+- if a page-specific selected cell UI differs from the shared base-class behavior, confirm the custom cell subclass overrides `isSelected` only to update foreground title, icon, text, or image state in `didSet`, without assigning `checkIcon.image` or `checkIcon.highlightedImage`
+- confirm page-specific cell subclasses do not modify `baseView` or `selectedBaseView` backgrounds, borders, layer properties, corner radius, shadows, gradients, or other container effects; those shared effects belong to the `# BaseCell` implementation in `GeneralOBBaseCell`
 - confirm Figma radius values `99` and `999` are implemented as half-height capsule radii, not copied as fixed Swift constants
 - confirm new page-specific image assets are under `GeneralOB/Assets.xcassets/GeneralOB/<page>/`
 - confirm downloaded Figma image resources use a Figma- and project-supported format and scale
@@ -525,6 +536,7 @@ Never claim pixel-perfect implementation unless the rendered app was compared to
 
 When processing pages from `OBFigma.md`:
 
+- the parent completes and verifies the optional `# BaseCell` shared-class update before dispatching the first page subagent; it does not assign that work to a page agent or add a page status marker
 - the parent dispatches exactly one isolated subagent at a time and integrates its result before dispatching the next page agent
 - subagents do not stage, commit, or edit `OBFigma.md` on the parent branch; after each successful assigned page, they stage only that page's changes and create exactly one page-specific commit in their isolated worktree
 - the parent inspects `git status --short` and `git diff`, integrates the active page commit, and resolves shared-file conflicts before updating that page's `done` marker or dispatching the next agent
@@ -540,6 +552,7 @@ Keep the final response concise and include:
 
 - `OB-Task-Doc` preflight result, including whether the root folder already existed or was copied from the skill-bundled `assets/OB-Task-Doc` scaffold, and confirmation that it was not added to the Xcode project
 - `GeneralOB` structure preflight result, including whether the required folder already existed or was copied from the skill-bundled `assets/GeneralOB` scaffold before implementation, where it was copied in the app source directory, confirmation that it was not placed beside `.xcodeproj` at the top level, and how target membership was verified
+- when `# BaseCell` exists, every Figma URL and the BaseCell variant it represents; the declaring file changed; confirmation that no page case, page VC, page data, selection persistence, page asset, routing, page status, or page-specific commit was created; and confirmation that unselected container UI lives in `baseView` while selected container UI lives in `selectedBaseView`
 - `OBFigma.md` page id, page title, status transition, attempt count, and commit hash when queue mode is used
 - the source, project-file, visual, and interaction checks used for the completed page; do not include `xcodebuild` as single-page completion verification
 - every Figma URL in the processed `OBFigma.md` block and the UI state each one represents
@@ -563,7 +576,7 @@ Keep the final response concise and include:
 - whether `GeneralOBPageItem` option data uses both raw `title` and localized `localizedTitle`
 - whether each option-list cell reused `GeneralOBBaseCell` directly or needed a custom cell, including the Figma difference that justified any subclass and registration/dequeue override
 - any custom `GeneralOBBaseCell` subclass details, including `baseView` additions, inherited foreground-control reuse, confirmation that it preserves inherited `checkIcon` images without reassignment, `super.setupUI()`, and `snp.remakeConstraints`
-- whether selected cell UI needed a custom `isSelected.didSet` correction, which foreground title/icon controls it updates, and confirmation that it does not change `baseView` or `selectedBaseView` container effects
+- whether a page-specific selected cell UI needed a custom `isSelected.didSet` correction, which foreground title/icon controls it updates, and confirmation that it does not change the shared `baseView` or `selectedBaseView` container effects
 - any Figma `99` or `999` corner radius translations applied
 - the `GeneralOB/<page>/...` asset namespace used for exported Figma assets
 - whether the Figma frame height is greater than `844`; if so, how scrolling content and the fixed floating bottom button were implemented

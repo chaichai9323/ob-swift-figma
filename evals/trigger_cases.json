@@ -225,6 +225,11 @@
     "reason": "Project-specific GeneralOB scaffold copy rule: place it in the engineering project directory and add copied Swift files to the app target."
   },
   {
+    "input": "ob-swift-figma 读取 OBFigma.md 的 BaseCell 分页信息段时不要当作 OB 页面，只修改 GeneralOBBaseCell 的布局和选中、非选中效果，选中容器效果放在 selectedBaseView。",
+    "should_trigger": true,
+    "reason": "Project-specific OBFigma BaseCell boundary: shared base-cell variants are not page tasks and selected container visuals belong to selectedBaseView."
+  },
+  {
     "input": "教我 SwiftUI 的基础语法。",
     "should_trigger": false,
     "reason": "Generic tutorial, no Figma or existing project implementation."
