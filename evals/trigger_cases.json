@@ -225,9 +225,9 @@
     "reason": "Project-specific GeneralOB scaffold copy rule: place it in the engineering project directory and add copied Swift files to the app target."
   },
   {
-    "input": "ob-swift-figma 读取 OBFigma.md 的 BaseCell 分页信息段时不要当作 OB 页面，只修改 GeneralOBBaseCell 的布局和选中、非选中效果，选中容器效果放在 selectedBaseView。",
+    "input": "ob-swift-figma 读取 OBFigma.md 的 BaseCell 分页信息段时不要当作 OB 页面；Figma 链接必须有返回按钮和底部的下一步按钮，返回按钮导出 44x44 的 2x/3x PNG 到 GeneralOB/icon_back，底部按钮样式修改 GeneralOBVC.nextButton。",
     "should_trigger": true,
-    "reason": "Project-specific OBFigma BaseCell boundary: shared base-cell variants are not page tasks and selected container visuals belong to selectedBaseView."
+    "reason": "Project-specific OBFigma BaseCell boundary for shared cell states, back-button assets, and GeneralOBVC next-button styling."
   },
   {
     "input": "教我 SwiftUI 的基础语法。",
