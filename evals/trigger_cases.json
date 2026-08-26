@@ -230,6 +230,11 @@
     "reason": "Project-specific OBFigma BaseCell boundary for shared cell states, back-button assets, and GeneralOBVC next-button styling."
   },
   {
+    "input": "ob-swift-figma 的 OBFigma.md 开头写了 是否并发完成执行: true，请同时开启 3 个 agent 实现页面任务。",
+    "should_trigger": true,
+    "reason": "Project-specific OBFigma queue concurrency setting for three isolated page agents."
+  },
+  {
     "input": "教我 SwiftUI 的基础语法。",
     "should_trigger": false,
     "reason": "Generic tutorial, no Figma or existing project implementation."

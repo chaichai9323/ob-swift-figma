@@ -83,6 +83,8 @@ Only continue to `OBFigma.md` queue parsing or Figma implementation after this p
 
 Use `OB-Task-Doc/OBFigma.md` as the primary resumable queue, with legacy `GeneralOB/OBFigma.md` as a fallback when the task-doc queue file is absent:
 
+- before parsing BaseCell or page blocks, inspect the opening global rules for `是否并发完成执行: true` or `是否并发完成执行: false`; strip an optional ordered or unordered Markdown list prefix, surrounding whitespace, and optional `【...】` brackets before matching the key and value
+- accept `true` and `false` case-insensitively; use serial mode when the setting is missing or `false`, and stop with an input error when the value is invalid or duplicate declarations conflict
 - when a heading normalized by trimming Markdown heading markers and whitespace equals `BaseCell`, parse it separately from the page manifest; support both `# BaseCell` and `## BaseCell`, and end its content at the first subsequent `## <id>` page block or next heading of the same or higher level
 - require every Figma link in the BaseCell section to visibly include its cell state, back button, and bottom next button; if a link omits either shared button, stop and report the missing design evidence instead of borrowing styles from a page block
 - process the BaseCell section in the parent worktree before dispatching any page subagent because it owns shared onboarding foundations
@@ -108,12 +110,15 @@ Use `OB-Task-Doc/OBFigma.md` as the primary resumable queue, with legacy `Genera
 - treat a missing marker as `todo`
 - supported markers are HTML comments inside the page block, such as `<!-- ob-status: todo -->`, `<!-- ob-status: in_progress; attempts: 1 -->`, `<!-- ob-status: failed; attempts: 1; reason: figma read failed -->`, `<!-- ob-status: blocked; reason: <external dependency> -->`, and `<!-- ob-status: done; commit: <hash> -->`
 - build a complete manifest of every page block before implementation, including id, title, URLs, announcement, references, and status
-- the parent agent dispatches exactly one isolated subagent for the next page not marked `done`; do not dispatch another page agent until the active page commit is integrated
-- before dispatch, the parent records `in_progress` and initializes or increments attempts only for the active page; subagents do not edit `OBFigma.md` markers in the parent worktree
+- Eligible pages are blocks with a missing marker, `todo`, `failed`, or `in_progress` left by a previous interrupted run; exclude `done`, unresolved `blocked`, and pages already assigned in the current run, and return a blocked block to eligibility only after its blocking condition is resolved
+- when concurrency is missing or `false`, the parent dispatches exactly one isolated subagent for the next eligible page and integrates it before dispatching another page agent
+- when concurrency is `true`, form a three-page concurrent batch from the next eligible pages in document order and dispatch three isolated page subagents concurrently; if fewer than three eligible pages remain, dispatch only the remaining count
+- before either serial or concurrent dispatch, the parent records `in_progress` and initializes or increments attempts for every selected page; subagents do not edit `OBFigma.md` markers in the parent worktree
 - after its page passes verification, each subagent stages only the assigned page's implementation, assets, and required project metadata in its isolated worktree and creates exactly one page-specific git commit
 - each subagent returns that commit hash, its verification evidence, announcement compliance, changed-file list, and shared-file integration conflicts
-- the parent integrates the active page commit, resolves conflicts in shared `GeneralOBPage`, page-data, data-model, asset, localization, and queue files, then records the accepted page as `done` before dispatching the next agent
-- retry a failed page before dispatching later pages; record a true external blocker as `blocked` and include it in the consolidated summary
+- in concurrent mode, collect the complete batch and integrate its results in `OBFigma.md` document order, even when a later agent finishes first; resolve conflicts in shared `GeneralOBPage`, page-data, data-model, asset, localization, and queue files, and record each accepted page as `done`
+- retry a failed page at its document position before integrating later batch results; record a true external blocker as `blocked`, then continue the ordered integration
+- do not start the next three-page concurrent batch until every page in the current batch is integrated or explicitly blocked
 - after every page is integrated or explicitly blocked, run one workspace/project scheme `xcodebuild ... build` action, then provide one final response
 - keep status markers close to the page heading so humans can scan progress quickly
 
@@ -543,12 +548,12 @@ Never claim pixel-perfect implementation unless the rendered app was compared to
 When processing pages from `OBFigma.md`:
 
 - the parent completes and verifies the optional BaseCell shared-foundation update for `GeneralOBBaseCell`, `GeneralOBVC.nextButton`, and `GeneralOB/icon_back` before dispatching the first page subagent; it does not assign that work to a page agent or add a page status marker
-- the parent dispatches exactly one isolated subagent at a time and integrates its result before dispatching the next page agent
+- the parent reads the opening `是否并发完成执行` value before page dispatch: missing or `false` uses one isolated page subagent at a time; `true` uses a three-page concurrent batch, with fewer agents only when fewer than three eligible pages remain
 - subagents do not stage, commit, or edit `OBFigma.md` on the parent branch; after each successful assigned page, they stage only that page's changes and create exactly one page-specific commit in their isolated worktree
-- the parent inspects `git status --short` and `git diff`, integrates the active page commit, and resolves shared-file conflicts before updating that page's `done` marker or dispatching the next agent
+- the parent inspects `git status --short` and `git diff`, then integrates serial results directly or collects a concurrent batch and integrates its results in document order; it resolves shared-file conflicts before updating each page's `done` marker
 - stage only accepted integration files; do not stage unrelated user changes
 - record each subagent page commit hash and the applicable integration commit hash in the accepted page's status marker
-- retry failed pages before dispatching later page agents; record genuine external blockers as `blocked`
+- retry failed pages at their document position before later results; record genuine external blockers as `blocked`; do not open the next concurrent batch until the current batch is fully integrated or blocked
 
 ## 13. Final Response
 
@@ -560,6 +565,7 @@ Keep the final response concise and include:
 - `GeneralOB` structure preflight result, including whether the required folder already existed or was copied from the skill-bundled `assets/GeneralOB` scaffold before implementation, where it was copied in the app source directory, confirmation that it was not placed beside `.xcodeproj` at the top level, and how target membership was verified
 - when a BaseCell section exists, every Figma URL and confirmation that it visibly contained the shared cell, back button, and bottom next button; confirmation that implementation was limited to `GeneralOBBaseCell`, `GeneralOBVC.nextButton`, and `GeneralOB/icon_back`; the 44x44 pt back asset's 88x88 `@2x` and 132x132 `@3x` PNG verification; confirmation that unselected cell UI lives in `baseView`, selected cell UI lives in `selectedBaseView`, and shared bottom-button styling lives in `GeneralOBVC.nextButton`; and confirmation that no page case, page VC, page data, selection persistence, page asset namespace, routing, page status, or page-specific commit was created
 - `OBFigma.md` page id, page title, status transition, attempt count, and commit hash when queue mode is used
+- the parsed `是否并发完成执行` value, selected serial or concurrent mode, each batch's page ids and actual agent count, and confirmation that concurrent results were integrated in document order
 - the source, project-file, visual, and interaction checks used for the completed page; do not include `xcodebuild` as single-page completion verification
 - every Figma URL in the processed `OBFigma.md` block and the UI state each one represents
 - any `### announcement` conditions in the processed block, how the implementation satisfies each condition, and any opening-rule conflict overridden by the announcement

@@ -330,15 +330,15 @@ class GeneralOBCollectionVC: GeneralOBVC, UICollectionViewDelegateFlowLayout {
     
     var selectedIndex: [IndexPath] {
         var res = [IndexPath]()
-        for (s, list) in dataList.enumerated() {
-            for (i, item) in list.enumerated() {
-                if selectedData.contains(item) {
-                    res.append(
-                        IndexPath(
-                            item: i,
-                            section: s
+        
+        for item in selectedData {
+            for(s, list) in dataList.enumerated() {
+                for (i, srcItem) in list.enumerated() {
+                    if srcItem == item {
+                        res.append(
+                            IndexPath(item: i, section: s)
                         )
-                    )
+                    }
                 }
             }
         }
@@ -468,14 +468,18 @@ class GeneralOBCollectionSectionVC: GeneralOBCollectionVC {
     }
 
     override func loadInitData() {
-        guard let section = selectedIndex.first?.section else {
+        guard selectedIndex.count > 0 else {
             super.loadInitData()
             return
         }
         var shot = srcSnapshot
-        shot.appendItems([
-            sectionDetail(sec: section)
-        ], toSection: section)
+        
+        for i in selectedIndex {
+            let section = i.section
+            shot.appendItems([
+                sectionDetail(sec: section)
+            ], toSection: section)
+        }
         dataSource.apply(shot, animatingDifferences: false) {
             self.initialAppear()
         }
