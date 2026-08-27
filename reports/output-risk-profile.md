@@ -13,6 +13,7 @@
 - `assets/GeneralOB` is copied into the filesystem but the copied Swift files are not added to the primary app target's Compile Sources or equivalent generated target source list.
 - The skill package drops or fails to distribute `assets/GeneralOB`, so other projects cannot restore the required GeneralOB base files when their project lacks them.
 - The task starts from a page queue but does not read `OB-Task-Doc/OBFigma.md` when present (falling back to `GeneralOB/OBFigma.md` only when needed), processes pages out of order, or skips a failed page instead of retrying it.
+- A missing BaseCell section is treated as an error or mandatory pre-dispatch gate, or triggers speculative inspection or modification of `GeneralOBBaseCell`, `GeneralOBVC.nextButton`, `GeneralOB/icon_back`, or its namespace metadata instead of proceeding directly to actual pages.
 - The opening `是否并发完成执行` value is ignored, parsed from a page block instead of the opening global rules, or treated as enabled for an invalid value.
 - `是否并发完成执行: true` still runs one page agent at a time, runs more than three page agents, counts the parent-owned BaseCell work as a page-agent slot, or opens the next batch before the current batch is fully integrated or blocked.
 - A three-page concurrent batch shares a worktree, lets page agents edit parent queue markers, combines pages into one commit, or integrates results in completion order instead of `OBFigma.md` document order, causing shared-file changes to be lost.
@@ -81,6 +82,7 @@
 - Confirm the copied `GeneralOB` folder is inside the second-level app source directory, such as `Root/AppName/GeneralOB`, and is not at the `.xcodeproj` sibling level, such as `Root/GeneralOB`, unless the repository genuinely has no separate app source directory.
 - Confirm the copied `GeneralOB` Swift files appear in the Xcode project or project-generation config for the app target; at minimum verify `GeneralOBCollectionVC.swift`, `GeneralOBPage.swift`, `GeneralOBPage+Data.swift`, `GeneralOBPage+VC.swift`, and `GeneralOBVC.swift`.
 - If `OB-Task-Doc/OBFigma.md` exists, read it first; otherwise use legacy `GeneralOB/OBFigma.md`. Identify the first not-done page and retry `failed` or `in_progress` pages before later pages.
+- Confirm a missing BaseCell section is valid, does not block page dispatch, and causes no BaseCell evidence checks or shared-target edits.
 - Parse `是否并发完成执行` only from the opening global rules after stripping optional Markdown list syntax and `【...】`; confirm an invalid or conflicting value stops dispatch, while a missing value behaves as `false`.
 - When `是否并发完成执行: true`, confirm the parent opens a three-page concurrent batch using three isolated worktrees, or only the remaining count when fewer than three eligible pages remain; BaseCell must be completed first and must not consume a slot.
 - Confirm all concurrent batch agents own one page and one page-specific commit, the parent alone owns status markers, results are integrated in document order, failed pages are retried at their position, and the next batch is not opened early.

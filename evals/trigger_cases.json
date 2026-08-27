@@ -230,6 +230,11 @@
     "reason": "Project-specific OBFigma BaseCell boundary for shared cell states, back-button assets, and GeneralOBVC next-button styling."
   },
   {
+    "input": "ob-swift-figma 的 OBFigma.md 没有 BaseCell，直接执行后面的页面，不要修改 BaseCell、返回图标或公共下一步按钮。",
+    "should_trigger": true,
+    "reason": "Project-specific optional BaseCell behavior when the shared-foundation section is absent."
+  },
+  {
     "input": "ob-swift-figma 的 OBFigma.md 开头写了 是否并发完成执行: true，请同时开启 3 个 agent 实现页面任务。",
     "should_trigger": true,
     "reason": "Project-specific OBFigma queue concurrency setting for three isolated page agents."
