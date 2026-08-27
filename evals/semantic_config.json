@@ -1,0 +1,55 @@
+{
+  "fallback_positive_concepts": [
+    "generalob_figma"
+  ],
+  "positive_concepts": {
+    "generalob_figma": {
+      "weight": 1.0,
+      "phrases": [
+        "ob-swift-figma",
+        "figma",
+        "obfigma",
+        "generalob",
+        "collectionsection",
+        "generalobcollectionsectionvc",
+        "uikit onboarding"
+      ]
+    }
+  },
+  "negative_concepts": {
+    "web_target": {
+      "weight": 1.2,
+      "exclusive": true,
+      "phrases": [
+        "react",
+        "web target",
+        "网页"
+      ]
+    },
+    "swiftui_target": {
+      "weight": 1.2,
+      "exclusive": true,
+      "phrases": [
+        "swiftui"
+      ]
+    },
+    "tutorial_only": {
+      "weight": 1.2,
+      "exclusive": true,
+      "phrases": [
+        "teach me",
+        "基础语法",
+        "tutorial"
+      ]
+    },
+    "design_only": {
+      "weight": 1.2,
+      "exclusive": true,
+      "phrases": [
+        "without writing application code",
+        "do not change code",
+        "只做设计"
+      ]
+    }
+  }
+}

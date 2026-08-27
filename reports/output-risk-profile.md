@@ -1,140 +1,22 @@
 # Output Risk Profile
 
-## Likely Failure Modes
+Audit-only matrix. Runtime agents use the routed references in `SKILL.md`.
 
-- Generated Swift ignores the existing architecture and creates an isolated view controller, direct `OBBaseViewController` subclass, or SwiftUI view instead of inheriting from `GeneralOBVC`, `GeneralOBCollectionVC`, or the required `GeneralOBCollectionSectionVC` for a `CollectionSection` declaration.
-- The task starts Figma reading or Swift implementation without first verifying that the project contains the required `GeneralOB` folder structure.
-- The task starts Figma reading or Swift implementation without first verifying that the project root contains `OB-Task-Doc`.
-- `OB-Task-Doc` is copied into the app source tree, added to `.xcodeproj`, included in app targets, or placed in Copy Bundle Resources even though it should remain a root-level task documentation folder only.
-- The skill package drops or fails to distribute `assets/OB-Task-Doc`, so other projects cannot restore the required root task-doc folder when their project lacks it.
-- The project is missing `GeneralOB` or required files such as `GeneralOBCollectionVC.swift`, `GeneralOBPage.swift`, `GeneralOBPage+Data.swift`, `GeneralOBPage+VC.swift`, `GeneralOBVC.swift`, `DataModel/`, or `Pages/`, but the implementation continues anyway and produces standalone or mislocated code.
-- Missing `GeneralOB` structure is papered over by creating placeholder stub files instead of copying the skill-bundled `assets/GeneralOB` scaffold into the engineering project.
-- `assets/GeneralOB` is copied somewhere outside the app source root, or is placed beside `.xcodeproj` at the top-level project directory instead of inside the second-level app source directory, so the app cannot compile against it.
-- `assets/GeneralOB` is copied into the filesystem but the copied Swift files are not added to the primary app target's Compile Sources or equivalent generated target source list.
-- The skill package drops or fails to distribute `assets/GeneralOB`, so other projects cannot restore the required GeneralOB base files when their project lacks them.
-- The task starts from a page queue but does not read `OB-Task-Doc/OBFigma.md` when present (falling back to `GeneralOB/OBFigma.md` only when needed), processes pages out of order, or skips a failed page instead of retrying it.
-- A missing BaseCell section is treated as an error or mandatory pre-dispatch gate, or triggers speculative inspection or modification of `GeneralOBBaseCell`, `GeneralOBVC.nextButton`, `GeneralOB/icon_back`, or its namespace metadata instead of proceeding directly to actual pages.
-- The opening `是否并发完成执行` value is ignored, parsed from a page block instead of the opening global rules, or treated as enabled for an invalid value.
-- `是否并发完成执行: true` still runs one page agent at a time, runs more than three page agents, counts the parent-owned BaseCell work as a page-agent slot, or opens the next batch before the current batch is fully integrated or blocked.
-- A three-page concurrent batch shares a worktree, lets page agents edit parent queue markers, combines pages into one commit, or integrates results in completion order instead of `OBFigma.md` document order, causing shared-file changes to be lost.
-- A BaseCell section headed `# BaseCell` or `## BaseCell` is treated as an OB page, producing a fake `GeneralOBPage` case, `OBBaseCellVC`, `pageData`, selection persistence, page status marker, page agent, page-specific assets, or page commit.
-- A BaseCell Figma link omits the back button or bottom next button, but implementation proceeds by inventing or borrowing shared chrome styles from a page block.
-- The BaseCell Figma variants are applied in page-specific code instead of the three shared targets: the existing `GeneralOBBaseCell` declaration, `GeneralOBVC.nextButton`, and the `GeneralOB` asset namespace limited to its parent `Contents.json` plus `icon_back.imageset`.
-- The BaseCell selected background, border, gradient, shadow, or corner treatment is implemented directly in `baseView` or improvised in `isSelected` instead of being owned by `selectedBaseView`; or the unselected container treatment is incorrectly placed in `selectedBaseView`.
-- The back icon is exported at 44x44 pixels instead of 44x44 pt, lacks the required 88x88 `@2x` or 132x132 `@3x` PNG, is placed under a page namespace, or does not resolve as `GeneralOB/icon_back`.
-- The BaseCell bottom next button is recreated or styled in a page VC or `nextBtnEnable` override instead of updating the shared `GeneralOBVC.nextButton` baseline.
-- A page block with multiple Figma links is incorrectly split into multiple `GeneralOBPage` cases, page files, or commits instead of one page with multiple UI states.
-- A page block contains `### announcement`, but the implementation ignores those page-level conditions or treats them as optional notes.
-- A page announcement names a reference image, reference document, attachment, filename, or relative path, but the implementation searches Figma exports, app assets, or the repository root before checking `OB-Task-Doc/`.
-- A page announcement reference exists under `OB-Task-Doc/`, but the implementation never reads or visually inspects it before coding.
-- A page is marked `done` without proving every `announcement` condition was satisfied.
-- A generic option-list inference is applied even though the page announcement says `不使用UICollectionView`, causing the page to use `UICollectionView` or `GeneralOBCollectionVC` incorrectly.
-- `OBFigma.md` status markers are missing, overwritten broadly, placed ambiguously, or mark later pages done before their implementation and commit succeed.
-- Multiple pages are placed in one unreviewable batch commit, or a completed page lacks its own page-specific commit even when agents execute concurrently.
-- Git staging includes unrelated user changes, unfinished later pages, or files outside the current page's implementation and status marker.
-- New page implementation files are placed outside `GeneralOB/Pages`, making the onboarding flow harder to maintain.
-- New page files or classes use generic names instead of the required `OB<Page>VC` pattern, making the `GeneralOBPage` mapping harder to scan.
-- A new or modified Figma page Swift file omits any required page import: `UIKit`, `Components`, `OOGFontKit`, `OOGMacroKits`, or `SnapKit`.
-- Displayed copy is assigned as raw Swift strings instead of `#Localized("...")`.
-- Privacy policy and terms-of-use agreement text is implemented as a plain label, static attributed text, or otherwise non-clickable text instead of using `GeneralLinkTextView` with `QACheck.PRIVACY_URL` and `QACheck.TERM_OF_USE_URL`.
-- Figma values are copied as raw constants instead of using local scaling, typography, color, and asset helpers.
-- A Figma page frame taller than `844` is implemented as a fixed-height static layout, causing content to be clipped on device screens.
-- The bottom continue button is added inside the scroll view for a page taller than `844`, so it scrolls away with the content instead of staying fixed above the scrollable layer.
-- A tall-page scroll view does not include enough bottom inset or content padding, so the last content is hidden behind the floating bottom button.
-- Figma capsule radii `99` or `999` are copied into Swift instead of being translated to half the component height.
-- Assets are referenced by names that do not exist in the target bundle.
-- Figma resources are rejected or converted solely because they are SVG or lack PNG `2x` and `3x` variants, rather than using the resource format and scale supported by both Figma and the project.
-- Page-specific exported images are placed at the root of `Assets.xcassets` or in a non-namespaced folder, causing asset collisions across pages.
-- Swift references page-specific images without the `GeneralOB/<page>/...` asset namespace, so lookup can resolve the wrong shared name or fail.
-- Title or subtitle views are added before later content and get covered by images, collection views, cards, decorative overlays, gradients, or background art.
-- Figma hides the back button, progress bar, or bottom continue button, but `GeneralOBPage` metadata keeps defaults so app chrome appears incorrectly.
-- Onboarding pages compile visually but are not integrated through `GeneralOBVC`, `GeneralOBPage`, `GeneralOBPage.pageData`, and the page data source.
-- Option-style pages use stacked buttons, hardcoded arrays, or a from-scratch `UICollectionView` implementation instead of inheriting from `GeneralOBCollectionVC` and using `GeneralOBPage.pageData.items`.
-- A page declaration contains `CollectionSection`, but its implementation inherits from `GeneralOBCollectionVC`, skips the required `registerCell()`, `cell(_ c: UICollectionView, path: IndexPath) -> GeneralOBBaseCell`, or `sectionDetail(sec:)` overrides, returns the base placeholder instead of expanded information, or diverges from the current project's `OBSleepVC` sequence by omitting `super.registerCell()`, changing the `path.item > 0` branch, or bypassing `super.cell(c, path: path)`.
-- Option-list pages ignore Figma selection and height behavior, leaving `page.multipleSelected` false for multi-select designs or leaving `page.cellHeightIsConsistent` true when cell heights can differ.
-- List pages or non-list tap-to-select pages do not add a page-specific `GeneralOBData` selected-index property, so selection is lost when the user returns to the page.
-- List-page selection restore/save logic is put inside `OB<Page>VC`, a cell, or page-local helper instead of the external `GeneralOBPage` `page.vc` creation path.
-- List-page `page.vc` initialization defaults to selecting the first option or another arbitrary option even though Figma, `OBFigma.md`, or the page announcement did not explicitly require an initial selected state.
-- Non-list tap-to-select pages add tap UI but do not restore from `GeneralOBData`, save changes back to `GeneralOBData`, or re-render selected state after taps.
-- Non-list tap-to-select pages incorrectly use `makeSelectIndexes` even though that API is reserved for list page external VC initialization.
-- Multi-select pages persist only one selected index, or single-select pages use an array unnecessarily, causing restore behavior to diverge from `page.multipleSelected`.
-- Option-style pages call `UICollectionView` reload APIs such as `reloadData()`, `reloadItems(at:)`, or `reloadSections(_:)` instead of relying on `GeneralOBCollectionVC` diffable snapshots, page data, selection APIs, or targeted cell state updates.
-- Page implementations call `makeSelectItems`, `makeSelectIndexes`, or another `makeSelect*` helper internally, even though those helpers are reserved for external VC initialization.
-- Bottom continue button enabled or disabled states are implemented with a new helper method, duplicated action path, or scattered assignments instead of overriding `nextBtnEnable` and using its `didSet`.
-- Page implementations assign `UIImageView.contentMode`, causing image rendering behavior to diverge from this project's conventions.
-- A circular progress design is rebuilt with layers or another progress control instead of the required `GeneralOBCircleProgress` configuration: `cx390(14)` line width, `#0F172A0D` track color, and `#9E95FC` / `#5E7BFB` gradient colors.
-- Option data initializes `GeneralOBPageItem` with only localized display text, or hardcodes strings in cells, instead of using `GeneralOBPageItem(title: "abc", localizedTitle: #Localized("abc"), ...)`.
-- Custom `GeneralOBBaseCell` subclasses add controls directly to `contentView`, ignore inherited `titleLab`, `icon`, `checkIcon`, or `selectedBaseView`, reassign `checkIcon.image` or `checkIcon.highlightedImage`, skip `super.setupUI()`, or use `makeConstraints` when the inherited constraints need `snp.remakeConstraints`.
-- A list cell's selected UI differs from the base class behavior, but the implementation does not override `isSelected` in the cell subclass, puts the correction in the page VC, reassigns `checkIcon`, or changes `baseView` / `selectedBaseView` backgrounds, borders, layers, shadows, gradients, corner radii, or other container effects.
-- A custom cell adds Figma-specific selected backgrounds, borders, gradients, shadows, or other container effects in `isSelected` instead of preserving the base class container treatment and updating only foreground title, icon, text, or image state.
-- One `GeneralOBPage` case drives multiple unrelated page implementations, or one page implementation handles multiple enum cases without a clear isolated branch.
-- The implementation matches a single Figma frame but breaks safe areas, iPad layout, small phones, or long localized text.
-- The final answer claims pixel-perfect fidelity without an app render or screenshot comparison.
+| Risk | Required control | Runtime source |
+|---|---|---|
+| Missing task-doc or misplaced scaffold | Preflight `OB-Task-Doc`; copy GeneralOB into the app source directory and verify target membership | `core-workflow.md` |
+| Queue reordered, duplicate page work, or unsafe concurrency | Parse statuses first; serial by default; `是否并发完成执行: true` uses ordered batches of three isolated agents | `queue-execution.md` |
+| Missing BaseCell section blocks pages | Treat missing BaseCell section as valid and skip all shared-target checks/edits | `basecell.md` |
+| BaseCell becomes a page or leaks into page files | Parent owns only `GeneralOBBaseCell`, `GeneralOBVC.nextButton`, namespace metadata, and `GeneralOB/icon_back` | `basecell.md` |
+| Selected container styling is duplicated in cells | Shared unselected UI belongs to `baseView`; selected container effects belong to `selectedBaseView` | `basecell.md` |
+| Figma states or announcements are lost | One block maps to one page; all links are states; announcement overrides conflicts | `queue-execution.md`, `page-implementation.md` |
+| Page bypasses GeneralOB architecture | One `GeneralOBPage`, `pageData`, and `OB<Page>VC` mapping with required imports/localization | `page-implementation.md` |
+| Tall layouts clip or the continue button scrolls away | Scroll main content above a fixed bottom button for frames over 844 | `page-implementation.md` |
+| CollectionSection behaves like a flat option list | Use `GeneralOBCollectionSectionVC`, exact `OBSleepVC` hooks, and real `sectionDetail` data | `option-pages.md` |
+| Selection is lost or defaults incorrectly | Persist in `GeneralOBData`; restore list state externally; empty state calls `makeSelectIndexes([])` | `option-pages.md` |
+| Custom cells override shared selected containers/checkmarks | Preserve `checkIcon`; limit page-cell `isSelected` to foreground content | `option-pages.md` |
+| Assets collide or render blank | Namespace page assets and verify catalog lookup; preserve exact BaseCell icon sizes | `assets-and-verification.md` |
+| Per-page builds waste time or final integration is untested | Page agents run focused checks; parent runs one final `xcodebuild` | `assets-and-verification.md` |
+| Fidelity is overstated | Require rendered visual comparison before claiming pixel-perfect output | `assets-and-verification.md` |
 
-## Self-Repair Checks
-
-- Name `GeneralOBVC`, `GeneralOBCollectionVC`, the component library, layout system, font API, and asset convention before editing.
-- Before reading Figma or `OBFigma.md`, verify that `OB-Task-Doc` exists at the engineering project root; if missing, copy the skill-bundled `assets/OB-Task-Doc` scaffold into the root and keep it out of `.xcodeproj`, targets, build phases, and Copy Bundle Resources.
-- Confirm `assets/OB-Task-Doc` is present in the skill package and contains the task document files needed for queue mode.
-- Before reading Figma or `OBFigma.md`, verify that `GeneralOB/GeneralOBCollectionVC.swift`, `GeneralOB/GeneralOBPage.swift`, `GeneralOB/GeneralOBPage+Data.swift`, `GeneralOB/GeneralOBPage+VC.swift`, `GeneralOB/GeneralOBVC.swift`, `GeneralOB/DataModel`, and `GeneralOB/Pages` all exist.
-- If the required `GeneralOB` folder or any required path is missing, locate the app source directory one level below the `.xcodeproj`-level directory, copy the skill-bundled `assets/GeneralOB` scaffold there as `GeneralOB`, add copied Swift files to the primary app target's Compile Sources or equivalent generated target source list, re-run the required-path check, verify target membership, and do not continue with stub files.
-- Confirm `assets/GeneralOB` is present in the skill package and contains the same required base files and folders used by the target-project preflight.
-- Confirm the copied `GeneralOB` folder is inside the second-level app source directory, such as `Root/AppName/GeneralOB`, and is not at the `.xcodeproj` sibling level, such as `Root/GeneralOB`, unless the repository genuinely has no separate app source directory.
-- Confirm the copied `GeneralOB` Swift files appear in the Xcode project or project-generation config for the app target; at minimum verify `GeneralOBCollectionVC.swift`, `GeneralOBPage.swift`, `GeneralOBPage+Data.swift`, `GeneralOBPage+VC.swift`, and `GeneralOBVC.swift`.
-- If `OB-Task-Doc/OBFigma.md` exists, read it first; otherwise use legacy `GeneralOB/OBFigma.md`. Identify the first not-done page and retry `failed` or `in_progress` pages before later pages.
-- Confirm a missing BaseCell section is valid, does not block page dispatch, and causes no BaseCell evidence checks or shared-target edits.
-- Parse `是否并发完成执行` only from the opening global rules after stripping optional Markdown list syntax and `【...】`; confirm an invalid or conflicting value stops dispatch, while a missing value behaves as `false`.
-- When `是否并发完成执行: true`, confirm the parent opens a three-page concurrent batch using three isolated worktrees, or only the remaining count when fewer than three eligible pages remain; BaseCell must be completed first and must not consume a slot.
-- Confirm all concurrent batch agents own one page and one page-specific commit, the parent alone owns status markers, results are integrated in document order, failed pages are retried at their position, and the next batch is not opened early.
-- If `# BaseCell` or `## BaseCell` exists, normalize the heading to `BaseCell`, parse it separately before the first subsequent `## <id>` page, and confirm every Figma link visibly includes the shared cell, back button, and bottom next button before editing.
-- Confirm BaseCell changed only the existing `GeneralOBBaseCell` declaration, `GeneralOBVC.nextButton`, and `Assets.xcassets/GeneralOB/Contents.json` plus `icon_back.imageset`, and introduced no `GeneralOBPage`, `pageData`, `page.vc`, `GeneralOBData`, `OB<Page>VC`, `GeneralOB/Pages` file, page-specific cell, page asset namespace, routing, page status marker, or page-specific commit.
-- Confirm the BaseCell unselected container UI is owned by `baseView`, every selected container effect is owned by `selectedBaseView`, and `isSelected` only switches those shared states and foreground appearance.
-- Confirm `icon_back@2x.png` is PNG 88x88, `icon_back@3x.png` is PNG 132x132, `Contents.json` maps the scales, and the shared asset resolves as `GeneralOB/icon_back`.
-- Confirm the Figma bottom next button's shared visual style is implemented directly in `GeneralOBVC.nextButton` and not duplicated in page-specific code.
-- If an `OBFigma.md` page block has multiple Figma links, confirm all links are read and mapped to states of one page implementation.
-- If an `OBFigma.md` page block has `### announcement`, list each condition before implementation and verify each one before marking the page `done`.
-- If an announcement mentions a reference image, reference document, attachment, filename, or relative path, search `OB-Task-Doc/` first with direct path checks or `rg --files OB-Task-Doc`, then read or inspect the resolved file before implementation.
-- Confirm announcement reference files under `OB-Task-Doc/` are used as references only unless they are explicitly required as runtime assets, and do not add reference-only files to `.xcodeproj`, targets, build phases, or Copy Bundle Resources.
-- If an announcement says `不使用UICollectionView`, confirm the page implementation inherits from `GeneralOBVC` or another non-collection project pattern and that page-specific files do not contain `UICollectionView` or `GeneralOBCollectionVC`.
-- Confirm each processed `OBFigma.md` page has exactly one clear status marker and that missing status is treated as `todo`.
-- Confirm one successful git commit exists per completed page and record or report every hash, including pages completed in the same concurrent batch.
-- Confirm `git status --short` and `git diff` were inspected so unrelated user changes are not staged.
-- Confirm new page files live in `GeneralOB/Pages`.
-- Confirm new page file and class names use `OB<Page>VC`, such as `OBStartVC.swift` / `OBStartVC`.
-- Confirm every new or modified Figma page Swift file, including page-specific views and cells, imports `UIKit`, `Components`, `OOGFontKit`, `OOGMacroKits`, and `SnapKit` before declarations.
-- Confirm visible strings are wrapped with `#Localized("...")`.
-- If a page contains privacy policy and terms-of-use agreement copy, confirm it uses `GeneralLinkTextView.createLinkView`, localized privacy/terms strings, and `setlinkAttribute` for `QACheck.PRIVACY_URL` and `QACheck.TERM_OF_USE_URL`.
-- If the Figma page frame height is greater than `844`, confirm main content is scrollable.
-- If a page is taller than `844`, confirm the bottom continue button is outside the scroll view and remains fixed/floating above scrolling content.
-- If a page is taller than `844`, confirm the scroll view has enough bottom inset or content padding so final content is not obscured by the fixed bottom button.
-- Confirm `GeneralOBPage` has exactly one enum case per implemented Figma page and that `GeneralOBPage+Data.swift` has a matching `pageData` branch.
-- Confirm absent Figma chrome is reflected in `GeneralOBPage` flags: `canBack = false`, `isHideProgress = true`, or `isHideContinueBtn = true`.
-- For option-style pages, confirm the page inherits from `GeneralOBCollectionVC` and uses `mainPage.pageData.items`. When the inherited `icon` + `titleLab` + `checkIcon` cell layout and title typography/colors match Figma, confirm no `GeneralOBBaseCell` subclass or `registerCell` / `cell(_ c: UICollectionView, path: IndexPath)` override was added.
-- When a page declaration contains `CollectionSection`, confirm it inherits from `GeneralOBCollectionSectionVC` and follows the current project's `OBSleepVC` implementation: `registerCell()` calls `super.registerCell()` before registering the page-specific cell; `cell(_:path:)` uses `path.item > 0` for that cell and otherwise returns `super.cell(c, path: path)`; `sectionDetail(sec:)` returns the selected section's localized Figma expansion information instead of the base placeholder. Do not apply the ordinary default-cell no-override rule to this specialized path.
-- Confirm `page.multipleSelected = true` for multi-select option lists, and confirm `page.cellHeightIsConsistent` is `true` for same-height cells or `false` for variable-height cells.
-- For list pages or non-list tap-to-select pages, confirm `GeneralOBData` has a matching persisted selected-index property: `Int?` for single-select and `[Int]?` for multi-select.
-- For list pages, confirm the external `GeneralOBPage` `page.vc` creation path calls `vc.makeSelectIndexes` to restore selected index paths from `GeneralOBData` and save selection changes back to `GeneralOBData`.
-- For list pages, confirm `page.vc` uses only `GeneralOBData` as the restore source; when `GeneralOBData` is empty or missing, it must call `vc.makeSelectIndexes([])` and must not default-select the first option or any other option unless Figma or an announcement explicitly requires one.
-- For non-list tap-to-select pages, confirm selection is restored from `GeneralOBData` during page setup, saved back to `GeneralOBData` in tap handlers, and rendered from page-local selected state.
-- Confirm non-list tap-to-select pages do not call `makeSelectIndexes`, `makeSelectItems`, or any `makeSelect*` helper.
-- Confirm `makeSelectIndexes` is not called from `OB<Page>VC`, custom cells, or page-local layout/selection helpers; non-list tap-to-select pages should not call it anywhere.
-- Confirm there are no `UICollectionView` reload calls, including `reloadData()`, `reloadItems(at:)`, and `reloadSections(_:)`.
-- Confirm page implementation code does not call `makeSelectItems`, `makeSelectIndexes`, or any `makeSelect*` helper; list-page initial selection must be wired externally when the VC is created, while non-list tap-to-select pages restore and save through `GeneralOBData` in page-local state/tap code.
-- Confirm custom bottom continue button state changes are inside `override var nextBtnEnable` `didSet`, with no new `updateNextButtonState`, `refreshNextButton`, or equivalent helper.
-- Confirm no page implementation, page-local custom view, or cell assigns `UIImageView.contentMode`.
-- When Figma shows a circular progress view, confirm the page declares the required `private lazy var progressView: GeneralOBCircleProgress` with `lineWidth = cx390(14)`, `trackColor = .init("#0F172A0D")`, and gradient colors `#9E95FC` / `#5E7BFB`, unless the page announcement overrides it.
-- Confirm every option `GeneralOBPageItem` is initialized with both `title: "abc"` and `localizedTitle: #Localized("abc")`.
-- Confirm custom `GeneralOBBaseCell` subclasses add new controls to `baseView`, prefer inherited `titleLab`, `icon`, `checkIcon`, and `selectedBaseView`, preserve inherited `checkIcon` images without assigning `checkIcon.image` or `checkIcon.highlightedImage`, call `super.setupUI()`, and use `snp.remakeConstraints` to change inherited layout constraints.
-- If selected cell UI differs from the base class behavior, confirm the cell subclass overrides `isSelected` and applies the correction in `didSet` only to foreground title, icon, text, or image state, not in the page VC or external selection persistence code.
-- Confirm `isSelected` does not reassign `checkIcon` or modify `baseView` / `selectedBaseView` backgrounds, borders, layers, shadows, gradients, corner radii, or other container effects.
-- Confirm any Figma radius value of `99` or `999` is implemented as `height / 2`, `cx390(height) / 2`, or `bounds.height / 2` after layout.
-- Confirm page-specific exported images use a Figma- and project-supported format and scale, including SVG where supported, are under `GeneralOB/Assets.xcassets/GeneralOB/<page>/`, both `GeneralOB` and `<page>` folders have `provides-namespace` enabled, and Swift references use `GeneralOB/<page>/<assetName>`.
-- Confirm title and subtitle views are brought to the front after all content views are added, or have an intentional higher `zPosition`.
-- Search for a nearby screen with the same UI pattern and copy its integration style.
-- Prefer local helpers such as `cx390`, `UIColor("#...")`, `cornerRadius`, `SnapKit`, and `OOGFontKit` where present.
-- Verify every new asset reference exists in the asset catalog or bundle.
-- Include build or verification output honestly; if blocked, state the blocker and what was checked manually.
-
-## Delivery Standard
-
-The user should receive integrated project code, not a standalone tutorial. The final response should make it clear that the required root `OB-Task-Doc` and `GeneralOB` preflights passed; the opening `是否并发完成执行` value selected either serial execution or document-ordered three-agent batches; any BaseCell section was handled first as a shared-foundation update rather than a page, with unselected cell UI in `baseView`, selected cell UI in `selectedBaseView`, a verified 44x44 pt `GeneralOB/icon_back` PNG image set, and shared bottom-button styling in `GeneralOBVC.nextButton`; each actual `OBFigma.md` page, state, announcement, status transition, attempt count, and commit hash was handled; every new or modified page Swift file includes `UIKit`, `Components`, `OOGFontKit`, `OOGMacroKits`, and `SnapKit`; `CollectionSection` pages inherit from `GeneralOBCollectionSectionVC`, use the `OBSleepVC` cell-hook sequence of `super.registerCell()`, `path.item > 0`, and `super.cell(c, path: path)`, and override `sectionDetail(sec:)` to return the selected section's expanded information; selection persistence, list metadata, navigation chrome, localization, responsive scrolling, and privacy links follow the required project patterns; list icons use Figma assets rather than system symbols; page-specific custom cells preserve inherited `checkIcon` images and limit `isSelected.didSet` to foreground content without container-effect changes; circular progress uses the required `GeneralOBCircleProgress` configuration; exported assets use Figma- and project-supported formats and scales, including SVG where supported; and the final complete-queue build result is reported.
+Primary residual risk: no external benchmark scan has been recorded; this remains `missing evidence` for broader distribution.

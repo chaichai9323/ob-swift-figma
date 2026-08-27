@@ -1,252 +1,65 @@
-[
-  {
-    "input": "根据这个 Figma 页面在当前 Swift iOS 项目里实现页面，必须复用已有组件和基类。",
-    "should_trigger": true,
-    "reason": "Direct Figma-to-Swift implementation request in an existing iOS codebase."
-  },
-  {
-    "input": "Implement this Figma node as a UIKit onboarding page using our current components.",
-    "should_trigger": true,
-    "reason": "UIKit screen implementation from Figma with local component reuse."
-  },
-  {
-    "input": "把这个 Figma modal 落到 iOS 代码里，沿用项目里的 SnapKit 和字体封装。",
-    "should_trigger": true,
-    "reason": "Figma design to project-specific Swift code."
-  },
-  {
-    "input": "后续根据 Figma 实现的 GeneralOB 页面都要继承 GeneralOBVC。",
-    "should_trigger": true,
-    "reason": "Project-specific Figma-to-iOS implementation constraint for GeneralOBVC inheritance."
-  },
-  {
-    "input": "后续 Figma 页面都放到 Pages 文件夹，选项型页面用 UICollectionView，选项数据放到 GeneralOBPage.pageData 里，并且 GeneralOBPage 和页面一对一。",
-    "should_trigger": true,
-    "reason": "Project-specific placement, option-list, pageData, and one-to-one mapping constraints."
-  },
-  {
-    "input": "选项型 Figma 页面需要 UICollectionView 时继承 GeneralOBCollectionVC，只重写 registerCell 和 cell(_ c: UICollectionView, path: IndexPath)，不要从零实现。",
-    "should_trigger": true,
-    "reason": "Project-specific option-page base class and override hook constraints."
-  },
-  {
-    "input": "ob-swift-figma 页面声明中有 CollectionSection 时，使用 GeneralOBCollectionSectionVC，并重写 registerCell 和 cell(_:path:)。",
-    "should_trigger": true,
-    "reason": "Project-specific CollectionSection base class and mandatory custom cell hook constraints."
-  },
-  {
-    "input": "CollectionSection 页面重写 registerCell 和 cell(_:path:) 时，沿用当前工程 OBSleepVC 的 super.registerCell、path.item > 0 和 super.cell 回退写法。",
-    "should_trigger": true,
-    "reason": "Project-specific CollectionSection cell-hook implementation pattern from OBSleepVC."
-  },
-  {
-    "input": "CollectionSection 页面还要重写 sectionDetail(sec:) 来返回当前 section 展开后的本地化信息。",
-    "should_trigger": true,
-    "reason": "Project-specific CollectionSection expanded-detail data hook requirement."
-  },
-  {
-    "input": "实现 Figma 页面时，如果组件圆角是 99 或 999，要设置成组件高度的一半。",
-    "should_trigger": true,
-    "reason": "Project-specific Figma radius translation rule for capsule components."
-  },
-  {
-    "input": "导出 Figma 图片资源时，把当前页面资源放到 GeneralOBPage 对应 page 的 assets 文件夹里，并在 Assets 里使用 namespace。",
-    "should_trigger": true,
-    "reason": "Project-specific asset export namespace and page folder constraint."
-  },
-  {
-    "input": "ob-swift-figma 导出图片使用 namespace 的时候使用 GeneralOB/page/... 的写法。",
-    "should_trigger": true,
-    "reason": "Project-specific asset namespace path format."
-  },
-  {
-    "input": "实现页面时新建文件名字以 OB 开头，后边跟 page，最后是 VC，比如 OBStartVC。",
-    "should_trigger": true,
-    "reason": "Project-specific page file and class naming convention."
-  },
-  {
-    "input": "实现页面的时候标题与副标题的图层要高于其他内容的层级。",
-    "should_trigger": true,
-    "reason": "Project-specific title and subtitle layer ordering constraint."
-  },
-  {
-    "input": "实现页面的时候，左上角没有返回按钮 page.canBack=false，顶部没有进度条 page.isHideProgress=true，页面底部没有按钮 page.isHideContinueBtn=true。",
-    "should_trigger": true,
-    "reason": "Project-specific GeneralOBPage chrome visibility metadata mapping."
-  },
-  {
-    "input": "实现页面的时候文案字符串显示使用 #Localized(\"\") 来本地化，文件顶部需要 import OOGMacroKits。",
-    "should_trigger": true,
-    "reason": "Project-specific localization macro and import requirement."
-  },
-  {
-    "input": "GeneralOBPageItem 初始化的时候 title=\"abc\", localizedTitle=#Localized(\"abc\") 使用这种写法。",
-    "should_trigger": true,
-    "reason": "Project-specific option data initialization convention for GeneralOBPageItem."
-  },
-  {
-    "input": "继承 GeneralOBBaseCell 的时候新建控件添加到 baseView，优先使用 titleLab、icon、checkIcon，不满足 UI 时用 SnapKit remakeConstraints，setupUI 要调用基类。",
-    "should_trigger": true,
-    "reason": "Project-specific GeneralOBBaseCell subclassing and layout customization convention."
-  },
-  {
-    "input": "ob-swift-figma 列表 cell 是 icon、title、checkIcon，标题字体颜色和 GeneralOBBaseCell 一致时，不要重写或新建 GeneralOBBaseCell 子类。",
-    "should_trigger": true,
-    "reason": "Project-specific direct-reuse rule for list cells that match GeneralOBBaseCell."
-  },
-  {
-    "input": "ob-swift-figma 列表页面的 cell 不要重新设置 checkIcon 的 image 或 highlightedImage，保留基类图片配置。",
-    "should_trigger": true,
-    "reason": "Project-specific checkIcon preservation rule for list cells."
-  },
-  {
-    "input": "ob-swift-figma 遇到列表页面时，不要用系统符号，列表 icon 必须使用 Figma 设计中的图片资源。",
-    "should_trigger": true,
-    "reason": "Project-specific list-item icon requirement: Figma-exported image assets replace all system-symbol fallbacks."
-  },
-  {
-    "input": "从 Figma 导出资源时按 Figma 和当前工程支持的格式与倍率处理，不强制 PNG、SVG 或 2x、3x。",
-    "should_trigger": true,
-    "reason": "Project-specific Figma asset export compatibility rule without a fixed file-format or scale restriction."
-  },
-  {
-    "input": "ob-swift-figma 实现页面的时候，UICollectionView 永远不要调用 reload 方法。",
-    "should_trigger": true,
-    "reason": "Project-specific prohibition on UICollectionView reload calls in Figma page implementations."
-  },
-  {
-    "input": "ob-swift-figma 单个页面完成后不运行 xcodebuild，等所有页面完成后只使用一次 workspace 或 project 的 scheme build 验证。",
-    "should_trigger": true,
-    "reason": "Project-specific verification avoids per-page builds and requires one final scheme build after the full queue."
-  },
-  {
-    "input": "ob-swift-figma 选项列表页面，支持多选的时候 page.multipleSelected = true。列表的 cell 高度一致的时候 page.cellHeightIsConsistent=true 否则 page.cellHeightIsConsistent=false。",
-    "should_trigger": true,
-    "reason": "Project-specific option-list page metadata for multi-select behavior and cell-height consistency."
-  },
-  {
-    "input": "ob-swift-figma 读取 OBFigma.md 后一次只能运行一个 Agent，每个 Agent 负责一个页面，完成后 git 提交一次，再执行下一个页面；全部页面完成后使用一次 xcodebuild 验证。",
-    "should_trigger": true,
-    "reason": "Project-specific sequential single-agent queue with one page commit per agent and one final build."
-  },
-  {
-    "input": "ob-swift-figma 实现页面的时候，底部按钮的不同状态通过重写基类的 nextBtnEnable 属性的 didSet 实现，不要新写方法。",
-    "should_trigger": true,
-    "reason": "Project-specific bottom continue button state customization through nextBtnEnable.didSet."
-  },
-  {
-    "input": "ob-swift-figma 页面里边不能调用 makeSelect 方法，这个方法是在外部初始化页面 VC 的地方调用的。",
-    "should_trigger": true,
-    "reason": "Project-specific prohibition on calling makeSelect helpers inside page implementations."
-  },
-  {
-    "input": "ob-swift-figma 页面里边使用 UIImageView 控件的时候不要指定 contentMode。",
-    "should_trigger": true,
-    "reason": "Project-specific prohibition on assigning UIImageView contentMode in page implementations."
-  },
-  {
-    "input": "ob-swift-figma 页面中有圆形进度条时使用 GeneralOBCircleProgress，线宽 14，轨道色 #0F172A0D，渐变 #9E95FC 到 #5E7BFB。",
-    "should_trigger": true,
-    "reason": "Project-specific circular progress control and configuration requirement."
-  },
-  {
-    "input": "ob-swift-figma OBFigma.md 任务列表中的某一个页面，可能会有多个 figma 页面链接，这是同一个页面的多种 UI 展示状态。",
-    "should_trigger": true,
-    "reason": "Project-specific OBFigma.md queue rule: multiple Figma links in one page block are UI states of one page."
-  },
-  {
-    "input": "ob-swift-figma OBFigma.md任务列表中的某一个页面，如果有announcement，需要满足声明的条件",
-    "should_trigger": true,
-    "reason": "Project-specific OBFigma announcement constraints must be honored."
-  },
-  {
-    "input": "ob-swift-figma 读取 OBFigma.md 的每个页面时先满足开头规则；若本页 announcement 与规则冲突，则本页以 announcement 为准。",
-    "should_trigger": true,
-    "reason": "Project-specific OBFigma page-rule precedence: all non-conflicting opening rules apply, while a page announcement overrides conflicts."
-  },
-  {
-    "input": "ob-swift-figma 页面高度大于844的时候，页面内容要做成滑动的，底部按钮不跟随内容滑动始终悬浮在滑动内容的上层",
-    "should_trigger": true,
-    "reason": "Project-specific tall-page scroll behavior with fixed floating bottom button."
-  },
-  {
-    "input": "ob-swift-figma 列表 cell 重写 isSelected 时只能更新标题、icon、checkIcon 等内容，不能修改 baseView 或 selectedBaseView 的背景、边框等效果。",
-    "should_trigger": true,
-    "reason": "Project-specific isSelected boundary: selected-state corrections are limited to foreground title and icon content."
-  },
-  {
-    "input": "ob-swift-figma 如果页面是列表页面或者有点击切换选择的功能，就在GeneralOBData里边添加对应页面的属性，var page: Int? 或者 var page: [Int]?，列表页面在page.vc属性使用vc页面的时候，添加选择状态、恢复状态、保存状态相关逻辑，包含多选的处理",
-    "should_trigger": true,
-    "reason": "Project-specific persisted selection state in GeneralOBData with external page.vc makeSelectIndexes wiring."
-  },
-  {
-    "input": "ob-swift-figma 如果页面是有点击切换选择功能的非列表页面，也需要添加选择状态，恢复状态，保存状态的相关代码",
-    "should_trigger": true,
-    "reason": "Project-specific non-list tap-to-select pages must restore, toggle, and save selection state through GeneralOBData."
-  },
-  {
-    "input": "ob-swift-figma 如果页面是列表页面,当前页面的cell是否选中的UI展示跟基类不一致的，要在子类的cell中重写isSelected属性的didSet进行修正",
-    "should_trigger": true,
-    "reason": "Project-specific selected cell UI correction through isSelected.didSet, limited to foreground title and icon content without container effects."
-  },
-  {
-    "input": "ob-swift-figma 在开始执行任务前，先查找一下工程目录里边有没有GeneralOB文件夹，确保文件夹下有以下文件GeneralOBCollectionVC.swift GeneralOBPage.swift GeneralOBPage+Data.swift GeneralOBPage+VC.swift GeneralOBVC.swift DataModel和Pages文件夹,没有的话需要把GeneralOB文件夹复制一份放在工程里边",
-    "should_trigger": true,
-    "reason": "Project-specific GeneralOB folder preflight and required architecture file check before Figma implementation."
-  },
-  {
-    "input": "ob-swift-figma 需要把目前项目中的GeneralOB文件夹复制一份放在当前skill中，以确保其他项目使用当前skill的时候找不到GeneralOB文件资源",
-    "should_trigger": true,
-    "reason": "Project-specific skill packaging request to bundle the reusable GeneralOB scaffold for other projects."
-  },
-  {
-    "input": "ob-swift-figma 列表页面没有特殊指定的情况下，在page.vc使用的地方不要给默认选中的选项,只使用GeneralOBData的数据，如果数据为空就使用 vc.makeSelectIndexes([])",
-    "should_trigger": true,
-    "reason": "Project-specific list-page selection initialization rule: restore only from GeneralOBData and call vc.makeSelectIndexes([]) when empty unless explicitly specified."
-  },
-  {
-    "input": "ob-swift-figma 复制OB-Task-Doc到当前skill，任务开始前以保证工程根目录有这个文件夹，这个文件夹不要放进project",
-    "should_trigger": true,
-    "reason": "Project-specific skill packaging request to bundle OB-Task-Doc and ensure the root task-doc folder exists without adding it to the Xcode project."
-  },
-  {
-    "input": "ob-swift-figma 执行任务的时候announcement里边的有参考图片或者参考文档的时候，优先在OB-Task-Doc文件夹下查找",
-    "should_trigger": true,
-    "reason": "Project-specific announcement reference resolution rule: search OB-Task-Doc first for reference images and documents."
-  },
-  {
-    "input": "ob-swift-figma 页面中设计 privacy 和 term 的文本时使用 GeneralLinkTextView，让 Privacy Policy 和 Terms of Use 可以点击打开 QACheck 的链接。",
-    "should_trigger": true,
-    "reason": "Project-specific privacy and terms agreement link implementation requirement."
-  },
-  {
-    "input": "ob-swift-figma 复制内置GeneralOB文件夹的时候保证粘贴在工程目录，保证放进target里边",
-    "should_trigger": true,
-    "reason": "Project-specific GeneralOB scaffold copy rule: place it in the engineering project directory and add copied Swift files to the app target."
-  },
-  {
-    "input": "ob-swift-figma 读取 OBFigma.md 的 BaseCell 分页信息段时不要当作 OB 页面；Figma 链接必须有返回按钮和底部的下一步按钮，返回按钮导出 44x44 的 2x/3x PNG 到 GeneralOB/icon_back，底部按钮样式修改 GeneralOBVC.nextButton。",
-    "should_trigger": true,
-    "reason": "Project-specific OBFigma BaseCell boundary for shared cell states, back-button assets, and GeneralOBVC next-button styling."
-  },
-  {
-    "input": "ob-swift-figma 的 OBFigma.md 没有 BaseCell，直接执行后面的页面，不要修改 BaseCell、返回图标或公共下一步按钮。",
-    "should_trigger": true,
-    "reason": "Project-specific optional BaseCell behavior when the shared-foundation section is absent."
-  },
-  {
-    "input": "ob-swift-figma 的 OBFigma.md 开头写了 是否并发完成执行: true，请同时开启 3 个 agent 实现页面任务。",
-    "should_trigger": true,
-    "reason": "Project-specific OBFigma queue concurrency setting for three isolated page agents."
-  },
-  {
-    "input": "教我 SwiftUI 的基础语法。",
-    "should_trigger": false,
-    "reason": "Generic tutorial, no Figma or existing project implementation."
-  },
-  {
-    "input": "把这个 Figma landing page 做成 React 网页。",
-    "should_trigger": false,
-    "reason": "Figma-to-web work, not Swift iOS."
-  }
-]
+{
+  "recommended_threshold": 0.5,
+  "should_trigger": [
+    {
+      "text": "根据这个 Figma 页面在当前 Swift iOS 项目里实现 GeneralOB 页面，复用已有 UIKit 组件。",
+      "family": "figma_page"
+    },
+    {
+      "text": "Implement this Figma node as a GeneralOB UIKit onboarding page using our existing components.",
+      "family": "figma_page"
+    },
+    {
+      "text": "ob-swift-figma 的 OBFigma.md 开头写了 是否并发完成执行: true，请同时开启 3 个 agent 实现页面任务。",
+      "family": "queue_concurrency"
+    },
+    {
+      "text": "ob-swift-figma 读取 OBFigma.md 的 BaseCell 分页信息段时不要当作 OB 页面；Figma 链接必须有返回按钮和底部的下一步按钮。",
+      "family": "basecell"
+    },
+    {
+      "text": "ob-swift-figma 的 OBFigma.md 没有 BaseCell，直接执行后面的页面，不要修改公共 Cell 和按钮。",
+      "family": "basecell_optional"
+    },
+    {
+      "text": "CollectionSection 页面使用 GeneralOBCollectionSectionVC，并沿用 OBSleepVC 的 cell hooks 和 sectionDetail。",
+      "family": "collection_section"
+    },
+    {
+      "text": "把 Figma 列表选项接入 GeneralOBData，支持恢复单选和多选状态。",
+      "family": "selection"
+    },
+    {
+      "text": "将 Figma 图片资源导出到 GeneralOB page namespace，并验证 iOS asset lookup。",
+      "family": "assets"
+    }
+  ],
+  "should_not_trigger": [
+    {
+      "text": "把这个 Figma landing page 做成 React 网页。",
+      "family": "web_target"
+    },
+    {
+      "text": "Implement this Figma screen in SwiftUI for iPad.",
+      "family": "swiftui_target"
+    },
+    {
+      "text": "教我 SwiftUI 的基础语法。",
+      "family": "tutorial"
+    },
+    {
+      "text": "Create a new Figma component library without writing application code.",
+      "family": "figma_design_only"
+    }
+  ],
+  "near_neighbor": [
+    {
+      "text": "Build a UIKit login screen from this written product requirement.",
+      "family": "uikit_without_figma_or_generalob"
+    },
+    {
+      "text": "Explain how the GeneralOB architecture works; do not change code.",
+      "family": "explain_only"
+    }
+  ]
+}

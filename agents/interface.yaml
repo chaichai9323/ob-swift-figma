@@ -1,30 +1,15 @@
 interface:
   display_name: "OB Swift Figma"
-  short_description: "Implement Figma screens in Swift using existing iOS project architecture"
-  default_prompt: "Use $ob-swift-figma to implement this Figma work in the current Swift iOS project, reusing existing components, base classes, pods, and helpers. Read the opening 是否并发完成执行 setting: true runs three page agents concurrently in isolated worktrees and integrates each batch in document order; false or missing keeps serial execution. BaseCell is optional: when no # BaseCell or ## BaseCell section exists, skip its checks and shared-target edits and continue with pages. When present, treat it as shared foundations rather than a page. Require every BaseCell Figma link to show its cell state, back button, and bottom next button; limit implementation to GeneralOBBaseCell, GeneralOBVC.nextButton, Assets.xcassets/GeneralOB/Contents.json namespace metadata, and Assets.xcassets/GeneralOB/icon_back.imageset. Keep unselected cell UI in baseView, selected cell effects in selectedBaseView, export the 44x44 pt back button as 88x88 @2x and 132x132 @3x PNG files resolving as GeneralOB/icon_back, and put shared bottom-button styling directly in GeneralOBVC.nextButton. For a CollectionSection page declaration, use GeneralOBCollectionSectionVC; follow OBSleepVC for registerCell() plus cell(_:path:), and override sectionDetail(sec:) to return the selected section's Figma expansion information."
+  short_description: "Implement Figma onboarding screens in GeneralOB UIKit projects"
+  default_prompt: "Use $ob-swift-figma in the current project. Follow its lazy reference router, preserve GeneralOB architecture, treat BaseCell as optional, honor OBFigma concurrency and announcements, and verify each page before the single final build."
 compatibility:
   canonical_format: "agent-skills"
-  adapter_targets:
-    - "openai"
-    - "claude"
-    - "generic"
-    - "vscode"
+  adapter_targets: ["openai", "claude", "generic", "vscode"]
   activation:
     mode: "manual"
-    paths:
-      - "**/*.swift"
-      - "**/*.xcodeproj/**"
-      - "**/*.xcworkspace/**"
-      - "**/*.xcassets/**"
-      - "Podfile"
-      - "Package.swift"
-  execution:
-    context: "inline"
-    shell: "bash"
-  trust:
-    source_tier: "local"
-    remote_inline_execution: "forbid"
-    remote_metadata_policy: "allow-metadata-only"
+    paths: ["**/*.swift", "**/*.xcodeproj/**", "**/*.xcworkspace/**", "**/*.xcassets/**", "Podfile", "Package.swift"]
+  execution: {context: "inline", shell: "bash"}
+  trust: {source_tier: "local", remote_inline_execution: "forbid", remote_metadata_policy: "allow-metadata-only"}
   degradation:
     openai: "metadata-adapter"
     claude: "neutral-source-plus-adapter"
